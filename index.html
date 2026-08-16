@@ -1,0 +1,3236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jill 工作台 · 全模块工作台</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<style>
+:root{
+  --bg:#fff4f7; --panel:#fffafc; --ink:#4a3b3f; --sub:#a98c93; --line:#f6dbe3;
+  --brand:#ff7aa2; --brand2:#ff9cbb; --pink:#ff6f91; --pink2:#ffb7c5; --pinkbg:#ffeaf1;
+  --up:#e63950; --down:#2e9e6b;
+  --red:#ff5c77; --yellow:#f4a6b8; --blue:#7fb8e6; --green:#43b98a;
+  --tint:#fff0f5; --tint2:#fff6f9;
+  --shadow:0 2px 6px rgba(255,122,162,.10),0 6px 22px rgba(255,122,162,.10);
+  --serif:"Yuanti SC","YuanTi SC","Microsoft YaHei","PingFang SC",sans-serif;
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:16px;padding:12px 24px;background:linear-gradient(90deg,#ffe9f0,#fff4f8);border-bottom:2px solid var(--red);box-shadow:var(--shadow)}
+header h1{font-size:18px;font-family:var(--serif);color:var(--ink);letter-spacing:1px;display:flex;align-items:center;gap:10px}
+header h1 .seal{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--red);color:#fffafc;border-radius:50%;font-size:15px;box-shadow:0 1px 3px rgba(255,92,119,.35)}
+header h1 .logo-ico{width:30px;height:30px;border-radius:50%;object-fit:contain;box-shadow:0 1px 3px rgba(255,92,119,.30)}
+header .clock{color:var(--sub);font-size:13px}
+header .wx{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--sub);font-size:13px}
+header .wx b{color:var(--ink)}
+.layout{display:flex;min-height:calc(100vh - 57px)}
+nav{width:212px;flex-shrink:0;background:var(--panel);border-right:2px solid var(--line);padding:16px 12px}
+nav .item{display:flex;align-items:center;gap:10px;padding:11px 14px;margin-bottom:6px;border-radius:12px;cursor:pointer;color:var(--sub);font-weight:500;transition:.15s;border-left:3px solid transparent}
+nav .item:hover{background:var(--pinkbg);color:var(--pink)}
+nav .item.active{background:var(--brand);color:#fffafc;box-shadow:inset 3px 0 0 var(--red)}
+nav .ico{font-size:17px}
+nav .nav-ico{width:22px;height:22px;object-fit:contain;border-radius:50%;flex-shrink:0;margin-left:2px}
+main{flex:1;padding:26px 32px;min-width:0}
+.module{display:none}
+.module.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+h2.sec{font-family:var(--serif);font-size:18px;margin-bottom:6px;color:var(--brand);border-left:4px solid var(--red);padding-left:10px;letter-spacing:1px}
+h2.sec::before{content:"♥";color:var(--red);margin-right:8px;font-size:15px}
+p.hint{color:var(--sub);font-size:12.5px;margin-bottom:14px}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.stack{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-family:var(--serif);font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--ink)}
+.card h3 .tag{margin-left:auto;font-size:11px;font-weight:400;color:var(--sub)}
+.btn{display:inline-block;padding:7px 14px;border-radius:8px;border:1px solid var(--brand);background:var(--brand);color:#fff;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--brand2)}
+.btn.ghost{background:var(--panel);color:var(--brand)}
+.btn.ghost:hover{background:var(--pinkbg)}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn-ico{width:16px;height:16px;border-radius:50%;object-fit:contain;vertical-align:-3px;margin-right:5px;flex-shrink:0}
+input,select,textarea{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:var(--panel);color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(255,122,162,.30);border-color:var(--brand2)}
+label.fl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--sub)}
+.empty{color:var(--sub);font-size:13px;padding:18px;text-align:center;border:1.5px dashed var(--line);border-radius:10px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-red{background:#fdecec;color:var(--red)} .b-yellow{background:#fdf3e2;color:var(--yellow)} .b-blue{background:#e6eef2;color:var(--blue)}
+.up{color:var(--up)} .down{color:var(--down)}
+/* 股票卡片 */
+.opp{border-left:4px solid var(--up)}
+.opp .nm{font-size:15px;font-weight:700}
+.opp .code{color:var(--sub);font-size:12px;margin-left:6px}
+.opp .reason{margin-top:6px;color:var(--ink);font-size:13px;line-height:1.6}
+.opp .tags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.opp .tags span{background:var(--pinkbg);color:var(--pink);padding:2px 8px;border-radius:6px;font-size:11px}
+.signals{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mkt-chip{background:var(--pinkbg);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:12px;min-width:118px}
+.mkt-chip b{display:block;font-size:14px;margin-top:2px}
+.score{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--sub);margin-top:4px}
+.score em{width:28px;font-style:normal;flex-shrink:0}
+.score .bar{flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.score .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--pink))}
+.score u{text-decoration:none;width:24px;text-align:right;color:var(--brand)}
+.disc{display:flex;align-items:center;gap:9px;padding:7px 4px;font-size:13px;border-bottom:1px dashed var(--line);cursor:pointer}
+.disc:last-child{border-bottom:none}
+.disc input{width:15px;height:15px;accent-color:var(--brand)}
+.disc.done span{text-decoration:line-through;color:var(--sub)}
+/* 机会面板：标签 / 策略chips / 信号徽章 */
+.tabbar{display:flex;gap:8px;margin:2px 0 12px;flex-wrap:wrap}
+.tab{padding:6px 15px;border-radius:20px;border:1px solid var(--line);background:var(--panel);font-size:13px;cursor:pointer;color:var(--sub);transition:.15s}
+.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.chip{padding:4px 12px;border-radius:18px;border:1px solid var(--line);background:var(--panel);font-size:12px;cursor:pointer;color:var(--sub);transition:.15s}
+.chip.active{background:var(--pink);color:#fff;border-color:var(--pink)}
+.opp-pane{margin-top:2px}
+.badge.zt{background:#fdecec;color:var(--red)} .badge.surge{background:#fdf0e8;color:#e8730a} .badge.vol{background:#e8f1fb;color:var(--blue)} .badge.dn{background:#e9f7ef;color:var(--green)} .badge.opp{background:#f3e9fb;color:#8b3fd1}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--line)}
+.step:last-child{border-bottom:none}
+.step .no{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.step .st-t{font-weight:600;font-size:13.5px}
+.step .st-d{font-size:12px;color:var(--sub);margin:2px 0 6px}
+.wk{display:flex;align-items:center;gap:9px;padding:6px 4px;font-size:13px;cursor:pointer}
+.wk input{width:15px;height:15px;accent-color:var(--pink)}
+.wk.done span{text-decoration:line-through;color:var(--sub)}
+/* 账户总览与KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
+.kpi{background:linear-gradient(135deg,#ffeef4,#fff6fa);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.kpi b{display:block;font-size:20px;margin-top:3px;color:var(--brand)}
+.kpi span{font-size:12px;color:var(--sub)}
+.sect-chip{display:inline-block;background:var(--pinkbg);color:var(--pink);border-radius:20px;padding:4px 11px;font-size:12px;margin:3px 4px 0 0}
+/* 备课流程图 */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:8px 0}
+.flow .stg{flex:1;min-width:78px;background:var(--tint);border:1px solid var(--line);border-radius:9px;padding:8px 6px;text-align:center;font-size:12px;position:relative}
+.flow .stg b{display:block;color:var(--brand);font-size:12px}
+.flow .ar{color:var(--pink);font-weight:700;flex-shrink:0}
+.slide-struct{font-size:12.5px;line-height:1.9;color:var(--ink)}
+.slide-struct li{margin-left:18px}
+/* 智能备课助手：核心区 + 磁贴 + 模板库 */
+.prep-layout{display:flex;gap:16px;align-items:flex-start}
+.prep-doc{flex:1;min-width:0}
+.prep-side{width:252px;flex-shrink:0}
+.gen-bar{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+.gen-bar .btn{margin:0}
+.prep-toolbar{display:flex;gap:8px;align-items:center;margin:12px 0 6px;flex-wrap:wrap}
+.prep-toolbar .spacer{margin-left:auto}
+.prep-status{font-size:12px;color:var(--green);display:flex;align-items:center;gap:5px}
+#prepDoc{width:100%;min-height:360px;resize:vertical;font-family:"Consolas","Microsoft YaHei",monospace;font-size:13px;line-height:1.65;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+#prepDoc:focus{outline:2px solid rgba(47,85,117,.22);border-color:var(--brand2)}
+#prepPreview{width:100%;min-height:360px;border:1px solid var(--line);border-radius:8px;padding:14px 18px;overflow:auto;background:var(--panel);font-size:13.5px;line-height:1.8}
+#prepPreview:empty:before{content:"预览区：点「预览」查看 Markdown 渲染效果";color:var(--sub);font-size:13px}
+#prepPreview h1,#prepPreview h2,#prepPreview h3{margin:14px 0 8px;color:var(--brand);font-family:var(--serif)}
+#prepPreview h1{font-size:20px;border-bottom:2px solid var(--line);padding-bottom:6px}
+#prepPreview h2{font-size:17px}
+#prepPreview h3{font-size:15px}
+#prepPreview code{background:#eef2f9;padding:1px 5px;border-radius:4px;font-size:12px}
+#prepPreview pre{background:#1f2733;color:#e6edf3;padding:10px 12px;border-radius:8px;overflow:auto}
+#prepPreview pre code{background:none;color:inherit;padding:0}
+#prepPreview table{border-collapse:collapse;margin:8px 0;font-size:13px;width:100%}
+#prepPreview th,#prepPreview td{border:1px solid var(--line);padding:6px 9px;text-align:left}
+#prepPreview th{background:var(--tint);color:var(--brand)}
+#prepPreview blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--brand2);background:var(--tint);color:var(--sub);font-size:12.5px}
+#prepPreview ul,#prepPreview ol{margin:6px 0 6px 22px}
+.prep-hint{font-size:12px;color:var(--sub);margin-top:8px}
+/* 磁贴面板 */
+.tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.tile{display:flex;flex-direction:column;gap:2px;padding:10px 10px 10px 10px;border:1px solid var(--line);border-radius:9px;background:var(--tint2);cursor:pointer;text-decoration:none;color:var(--ink);transition:.15s;position:relative;overflow:hidden}
+.tile:hover{border-color:var(--brand2);transform:translateY(-2px);box-shadow:0 3px 10px rgba(47,85,117,.12)}
+.tile .ic{font-size:18px;line-height:1}
+.tile .nm{font-size:12.5px;font-weight:600;line-height:1.3;margin-top:3px}
+.tile .cat{font-size:10px;color:var(--pink);margin-top:1px}
+.tile .del{position:absolute;top:3px;right:3px;width:18px;height:18px;border:none;background:rgba(0,0,0,.04);border-radius:5px;color:var(--sub);cursor:pointer;font-size:12px;line-height:1;display:none}
+.tile:hover .del{display:block}
+.tile .del:hover{background:var(--red);color:#fff}
+/* 提示词模板库 - 紧凑标签式 */
+.tpl-bar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.tpl-bar input{flex:1;min-width:160px;max-width:260px;padding:6px 10px}
+.tpl-cat{margin:6px 0 8px}
+.tpl-cat h4{font-family:var(--serif);font-size:12px;color:var(--sub);margin:0 0 6px;display:flex;align-items:center;gap:6px}
+.tpl-cat h4::before{content:"";width:3px;height:12px;background:var(--red);border-radius:2px}
+.tpl-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tpl-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--line);border-radius:16px;background:var(--panel);font-size:12.5px;cursor:pointer;transition:.15s;position:relative;max-width:100%}
+.tpl-chip:hover{border-color:var(--brand);background:#efe7d6}
+.tpl-chip .t-t{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpl-chip .ic{opacity:.55;font-size:11px;padding:2px}
+.tpl-chip .ic:hover{opacity:1;background:rgba(47,85,117,.1);border-radius:50%}
+.tpl-add{display:none;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:flex-end;padding-top:10px;border-top:1px dashed var(--line)}
+.tpl-add.open{display:flex}
+@media(max-width:900px){.prep-layout{flex-direction:column}.prep-side{width:100%}}
+/* 科研筛选 */
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs .tb-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:12.5px;color:var(--sub)}
+.tabs .tb-btn.on{background:linear-gradient(90deg,var(--brand),var(--pink));color:#fff;border-color:transparent}
+.gr-bar{height:6px;background:#e7e1d2;border-radius:4px;overflow:hidden;margin-top:4px}
+.gr-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--pink))}
+.news-it{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px}
+.news-it.read span{color:var(--sub)}
+.news-it.read span::after{content:" ✓已读";font-size:10px;color:var(--green)}
+/* 交易日志 */
+.journal{width:100%;min-height:64px;resize:vertical;font-family:inherit}
+.alert-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:9px;margin-bottom:8px;font-size:13px}
+.alert-sell{background:#fdecec;border-left:3px solid var(--red)}
+.alert-surge{background:#fff4f0;border-left:3px solid var(--up)}
+table.tb{width:100%;border-collapse:collapse;font-size:13px}
+table.tb th{text-align:left;color:var(--sub);font-weight:500;padding:8px 10px;border-bottom:2px solid var(--line)}
+table.tb td{padding:9px 10px;border-bottom:1px solid var(--line)}
+/* 任务看板 */
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kcol{background:#f0f3f8;border-radius:12px;padding:12px;min-height:220px}
+.kcol h4{font-size:13px;color:var(--sub);margin-bottom:10px;display:flex;justify-content:space-between}
+.kcol.dragover{outline:2px dashed var(--brand2)}
+.tcard{background:#fff;border-radius:9px;padding:10px 12px;margin-bottom:9px;box-shadow:var(--shadow);cursor:grab;border-left:4px solid var(--blue)}
+.tcard.p-red{border-left-color:var(--red)} .tcard.p-yellow{border-left-color:var(--yellow)} .tcard.p-blue{border-left-color:var(--blue)}
+.tcard .tt{font-weight:600;font-size:13px;margin-bottom:4px}
+.tcard .meta{font-size:11.5px;color:var(--sub);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tcard .ops{margin-top:7px;display:flex;gap:6px}
+.tcard.done .tt{text-decoration:line-through;color:var(--sub)}
+.due-soon{color:var(--red);font-weight:700}
+.progress{height:10px;background:#e6ebf2;border-radius:6px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--brand),var(--pink));width:0;transition:.4s}
+/* 身心管理布局优化 */
+.health-grid{align-items:stretch;grid-template-columns:2fr 1fr}
+.weather-card h3{margin-bottom:8px}
+.weather-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.weather-row span{font-size:13px;color:var(--sub)}
+.health-input{grid-row:span 2}
+.health-input .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.health-input .period-check{flex-direction:row;align-items:center;gap:8px;margin:0}
+.health-input .period-check input{width:16px;height:16px;flex-shrink:0}
+.health-input .goals-row{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.health-input .goal-bar{min-width:140px}
+.health-input .goal-label{font-size:12px;color:var(--sub);margin-bottom:4px}
+.health-input .health-actions{margin-top:14px;display:flex;gap:10px}
+.health-input textarea{resize:vertical}
+.period-card{display:flex;flex-direction:column}
+.period-card #periodOut{flex:1;display:flex;flex-direction:column;justify-content:center;font-size:13px;line-height:1.9}
+.wellness-card{display:flex;flex-direction:column}
+.wellness-card #wellnessOut{flex:1;font-size:13px;line-height:1.75}
+.wellness-card ul{margin:6px 0 0 18px}
+.wellness-card li{margin-bottom:4px}
+.chart-wrap{position:relative;min-height:160px}
+.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:var(--sub);background:rgba(245,247,252,.7);border-radius:8px}
+@media (max-width:1100px){
+  .health-grid{grid-template-columns:1.6fr 1fr}
+  .health-input .form-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:800px){
+  .g2{grid-template-columns:1fr}
+  .health-grid{grid-template-columns:1fr}
+  .health-input{grid-row:auto}
+  .health-input .form-grid{grid-template-columns:1fr}
+  .health-input .goals-row{grid-template-columns:1fr}
+}
+/* 打卡 - 紧凑 */
+.punch{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:center}
+.pbtn{padding:9px 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel);cursor:pointer;text-align:center;font-size:12.5px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.pbtn:hover{border-color:var(--brand2);transform:translateY(-1px)}
+.pbtn.on{background:#e9f7f0;border-color:var(--green);color:var(--green)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;width:100%;margin-top:10px}
+.cal .d{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;font-size:12px;background:var(--tint);position:relative;padding:4px}
+.cal .d.head{background:none;color:var(--sub);font-size:10px}
+.cal .d.hit{background:#d9efe3}
+.cal .d .dots{display:flex;gap:2px;margin-top:1px;flex-wrap:wrap;justify-content:center}
+.cal .d .dots i{width:4px;height:4px;border-radius:50%}
+.cal .d.today{outline:2px solid var(--brand2)}
+/* 每日一书/影/金句 -  richer card */
+.qb-card{display:flex;flex-direction:column;justify-content:space-between;height:100%;gap:10px}
+.qb-header{display:flex;align-items:flex-start;gap:10px}
+.qb-ico{font-size:22px;line-height:1}
+.qb-title{font-size:15px;font-weight:700;color:var(--ink);font-family:var(--serif);line-height:1.4}
+.qb-meta{font-size:12px;color:var(--sub);margin-top:3px}
+.qb-summary{font-size:13px;line-height:1.85;color:var(--ink);background:var(--tint2);padding:10px 12px;border-radius:8px;border:1px dashed var(--line)}
+.qb-quote{font-size:16px;font-family:var(--serif);color:var(--brand);font-weight:600;line-height:1.75;border-left:3px solid var(--red);padding-left:12px}
+.qb-source{font-size:12.5px;color:var(--sub);text-align:right;margin-top:4px}
+.qb-tags{display:flex;gap:6px;flex-wrap:wrap}
+.qb-tags span{background:var(--pinkbg);color:var(--pink);padding:3px 9px;border-radius:12px;font-size:11px}
+.qb-section{background:#f7f4ec;border-left:3px solid var(--brand);padding:9px 12px;border-radius:0 8px 8px 0;font-size:13px;color:var(--ink)}
+.qb-section b{display:block;margin-bottom:4px;color:var(--brand);font-size:12px}
+.qb-section p{margin:0;line-height:1.8}
+.cmd{background:#f3efe6;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.cmd code{color:var(--brand);flex:1;font-family:"Consolas","Microsoft YaHei",monospace}
+.copy{flex-shrink:0}
+.vocab-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vitem{background:#f7f9fc;border-radius:9px;padding:10px 12px;font-size:12.5px}
+.vitem b{font-size:14px;color:var(--brand)}
+.stamp{font-size:11px;color:var(--sub)}
+/* P0-1：研判数据过期标注 + 免责声明 */
+.disc-note{font-size:12px;color:#9a6a18;background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.32);border-left:3px solid #d97706;padding:7px 11px;border-radius:6px;margin:8px 0 14px;line-height:1.65}
+.disc-note b{color:#7a4f12}
+.stale-badge{display:inline-block;background:#d97706;color:#fff;font-size:11px;font-weight:600;padding:1px 7px;border-radius:9px;margin-left:6px;vertical-align:middle}
+/* A股十大祖训 */
+.precept-wrap{position:relative;border-radius:var(--radius);background:linear-gradient(135deg,#fff7fa 0%,#ffeef3 60%,#fff4f7 100%);border:1px solid var(--line);padding:18px 20px 20px;box-shadow:var(--shadow);overflow:hidden}
+.precept-wrap::before{content:"";position:absolute;top:-40px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,122,162,.18),transparent 70%);pointer-events:none}
+.precept-wrap::after{content:"";position:absolute;bottom:-30px;left:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(255,92,119,.10),transparent 70%);pointer-events:none}
+.precept-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap;position:relative;z-index:1}
+.precept-head h3{font-family:var(--serif);font-size:16px;color:var(--ink);display:flex;align-items:center;gap:8px;margin:0}
+.precept-head .sub{color:var(--sub);font-size:12.5px}
+.precept-head .seal-mini{margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--sub)}
+.precept-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;position:relative;z-index:1}
+.precept{background:#fff;border-radius:12px;padding:12px 12px 10px;border:1px solid var(--line);position:relative;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column;gap:4px;min-height:108px}
+.precept:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(255,122,162,.18);border-color:var(--brand2)}
+.precept .num{position:absolute;top:8px;right:10px;font-family:var(--serif);font-size:12px;color:var(--red);letter-spacing:1px;background:var(--pinkbg);border-radius:8px;padding:1px 7px;line-height:1.4}
+.precept .ico{font-size:20px;line-height:1}
+.precept .t{font-size:13.5px;font-weight:700;color:var(--ink);font-family:var(--serif);line-height:1.35;margin-top:18px;padding-right:28px}
+.precept .d{font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:2px}
+@media (max-width:1100px){.precept-grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:680px){.precept-grid{grid-template-columns:repeat(2,1fr)}}
+footer{padding:18px;text-align:center;color:var(--sub);font-size:12px}
+.popmenu{position:absolute;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px;z-index:120;min-width:130px;animation:fade .15s}
+.popmenu button{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 10px;border-radius:7px;color:var(--ink);font-size:13px;cursor:pointer}
+.popmenu button:hover{background:#efe7d6;color:var(--brand)}
+.popmenu hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+.ocr-row{display:grid;grid-template-columns:30px 1.4fr .9fr .8fr .8fr .9fr 1fr;gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line);font-size:13px}
+.ocr-row.head{font-weight:700;background:#f7f8fb;border-radius:8px 8px 0 0;border-bottom:1px solid var(--line)}
+.ocr-row input,.ocr-row select{width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:13px;background:var(--panel)}
+.ocr-row input[type="checkbox"]{width:18px;height:18px;justify-self:center}
+.ocr-row .bad{color:var(--red);font-size:12px}
+.ocr-row.head{position:sticky;top:0;z-index:2}
+.ocr-body{display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:16px;padding:14px 18px;overflow:auto;flex:1}
+@media(max-width:820px){.ocr-body{grid-template-columns:1fr}}
+.ocr-left{min-width:0}
+.ocr-right{min-width:0;display:flex;flex-direction:column}
+.ocr-imgwrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f7f8fb;max-height:52vh;display:flex;align-items:center;justify-content:center}
+.ocr-imgwrap img{max-width:100%;max-height:52vh;display:block;cursor:zoom-in}
+.ocr-banner{font-size:12px;padding:8px 10px;border-radius:8px;margin-bottom:10px;line-height:1.6}
+.ocr-banner.info{background:var(--tint);color:#2c56a8}
+.ocr-banner.warn{background:#fff6e5;color:#8a6212}
+.ocr-banner.ok{background:#e8f6ed;color:#14713d}
+#imgZoom{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;cursor:zoom-out;padding:20px}
+#imgZoom img{max-width:100%;max-height:100%;object-fit:contain}
+#ocrModal .btn{white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <h1><img class="logo-ico" src="assets/icons/icon1.png" alt="">每日三省 工作台</h1>
+  <span class="clock" id="clock"></span>
+  <div class="wx" id="headerWx"><span>🌤 天气加载中…</span></div>
+</header>
+<div class="layout">
+<nav id="nav">
+  <div class="item active" data-m="m1"><img class="nav-ico" src="assets/icons/icon1.png" alt="">股票工作台</div>
+  <div class="item" data-m="m2"><img class="nav-ico" src="assets/icons/icon2.png" alt="">身心管理</div>
+  <div class="item" data-m="m3"><img class="nav-ico" src="assets/icons/icon3.png" alt="">智能备课助手</div>
+  <div class="item" data-m="m4"><img class="nav-ico" src="assets/icons/icon4.png" alt="">前沿探索·课题</div>
+  <div class="item" data-m="m5"><img class="nav-ico" src="assets/icons/icon5.png" alt="">任务指挥官</div>
+  <div class="item" data-m="m6"><img class="nav-ico" src="assets/icons/icon6.png" alt="">每日精进</div>
+</nav>
+<main>
+
+<!-- ============ 模块一 ============ -->
+<section class="module active" id="m1">
+  <h2 class="sec">股票工作台 · Stock Desk</h2>
+  <div style="margin:10px 0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,#eef3ff,#f8faff)">
+    <div style="font-weight:700;color:var(--brand);font-size:14px;margin-bottom:6px">📌 模块汇总 · 股票工作台（AI 短线掘金）</div>
+    <div style="font-size:13px;color:var(--sub);line-height:1.85">
+      整合 <b>大盘研判 · 账户总览 · 持仓健康 · 盘中热点 · 短线机会 · 策略选股 · 预警纪律 · 自选监控</b> 八大能力；<br>
+      行情接入腾讯实时数据与前复权 K 线，真实计算 <b>MA 多头 / MACD 金叉 / 连板数 / 涨停分档</b>；<br>
+      策略选股支持 <b>参数化阈值实时重算</b>，自选股支持 <b>题材打标分组折叠</b>；<br>
+      数据全部走腾讯实时接口，持仓与自选股合并去重后按策略实时选股，支持手动添加与<b>批量粘贴导入</b>。
+    </div>
+  </div>
+
+  <!-- 📜 A股十大祖训 -->
+  <div class="precept-wrap" style="margin:14px 0 18px">
+    <div class="precept-head">
+      <h3>📜 A股十大祖训</h3>
+      <span class="sub">老股民用钱换来的经验，牢记少走弯路</span>
+      <span class="seal-mini">⏰ 盘前必读</span>
+    </div>
+    <div class="precept-grid">
+      <div class="precept"><span class="num">01</span><span class="ico">🏃</span><div class="t">高开要跑路</div><div class="d">高开多是诱多，冲动追高易被套</div></div>
+      <div class="precept"><span class="num">02</span><span class="ico">⏰</span><div class="t">尾盘急拉<br>非奸即盗</div><div class="d">尾盘突拉升异动，第二天风险高</div></div>
+      <div class="precept"><span class="num">03</span><span class="ico">📊</span><div class="t">放量滞涨<br>赶紧离场</div><div class="d">放量不涨反下跌，主力可能在出货</div></div>
+      <div class="precept"><span class="num">04</span><span class="ico">🔀</span><div class="t">一致不接<br>分歧低吸</div><div class="d">高潮一致要小心，分歧时才有机会</div></div>
+      <div class="precept"><span class="num">05</span><span class="ico">👑</span><div class="t">龙头多条命<br>跟风半条命</div><div class="d">龙头抗跌有溢价，跟风容易 A 杀</div></div>
+      <div class="precept"><span class="num">06</span><span class="ico">📜</span><div class="t">利好兑现<br>就是利空</div><div class="d">利好提前反应，兑现反而要出货</div></div>
+      <div class="precept"><span class="num">07</span><span class="ico">📈</span><div class="t">新手死于追高<br>老手死于抄底</div><div class="d">追涨杀跌最亏钱，抄在半山腰</div></div>
+      <div class="precept"><span class="num">08</span><span class="ico">🧘</span><div class="t">会空仓的<br>是祖师爷</div><div class="d">控制仓位和节奏，比买什么更重要</div></div>
+      <div class="precept"><span class="num">09</span><span class="ico">🛡</span><div class="t">不怕卖飞<br>就怕套牢</div><div class="d">落袋为安才是真，被套动不了最伤</div></div>
+      <div class="precept"><span class="num">10</span><span class="ico">⚖️</span><div class="t">赚钱靠行情<br>活下来靠风控</div><div class="d">行情决定收益，风控决定生死</div></div>
+    </div>
+  </div>
+
+  <p class="hint">盘前筛选 · 盘中预警 · 策略源自 ima「股票」知识库 <span class="stamp" id="stockStamp"></span></p>
+  <div class="disc-note" id="stockDisc"></div>
+  <div class="kpi-row" id="kpis"></div>
+  <div class="grid g2">
+    <div class="card" style="grid-column:1/-1"><h3>🌡 大盘环境 <span class="tag" id="mktDate">盘前自动化写入</span></h3>
+      <div id="mkt" style="display:flex;gap:12px;flex-wrap:wrap;align-items:stretch"></div>
+    </div>
+    <div class="card"><h3>💰 账户总览 <span class="tag">按持仓估算</span></h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">
+        <div id="acctNums" style="font-size:12.5px;line-height:1.8"></div>
+        <div><canvas id="chPie" height="130"></canvas></div>
+      </div>
+    </div>
+    <div class="card"><h3>📏 交易纪律 · 开盘前自查 <span class="tag" id="discStamp"></span></h3><div id="discipline"></div>
+      <div class="cmd" style="margin-top:10px"><code>对助研说："复盘今日持仓与操作"</code><button class="btn sm ghost copy">复制</button></div>
+    </div>
+    <div class="card" style="grid-column:1/-1"><h3>🔥 盘中热点板块 <span class="tag" id="sectTag">实时(腾讯) · 90秒刷新</span></h3>
+      <div class="stamp" style="margin:2px 0 8px;color:var(--sub)">以各行业龙头股实时涨跌近似板块热度 · 纯腾讯行情</div>
+      <div id="sectors"><span class="stamp">板块实时行情加载中…</span></div>
+    </div>
+    <div class="card" style="grid-column:1/-1"><h3>⚡ 今日短线机会 <span class="tag" id="oppDate"></span></h3>
+      <div id="oppPool">
+        <div style="display:flex;gap:10px;align-items:center;margin:2px 0 10px;flex-wrap:wrap">
+          <button class="btn sm" onclick="refreshPool()">🔄 刷新实时行情</button>
+          <button class="btn sm ghost" id="autoBtn" onclick="toggleAutoRefresh()" title="每90秒后台自动刷新行情（仅页面可见时）">⏱ 自动刷新：开</button>
+          <span class="stamp" id="poolStamp">未刷新 · 点按钮或等待自动拉取持仓/自选股实时异动</span>
+        </div>
+        <h4 style="margin:16px 0 8px;font-size:13px;color:var(--sub)">盘前精选机会（由自动化研判写入 · 每日盘前更新 · 与上方「今日机会」计数一致）</h4>
+        <div id="poolStatic" class="grid g3"></div>
+        <h4 style="margin:16px 0 8px;font-size:13px;color:var(--sub)">实时机会 · 持仓+自选（腾讯实时行情 · 按强度排序，点「刷新实时行情」后填充）</h4>
+        <div id="poolOpps" class="grid g3"></div>
+      </div>
+    </div>
+    <div class="card" style="align-self:start"><h3>🚨 预警信号 <span class="tag" id="alertStamp"></span></h3><div id="alerts"></div></div>
+    <div class="stack">
+      <div class="card"><h3>🧠 知识库策略锚点</h3><ul id="strategies" style="padding-left:18px;line-height:1.9;font-size:13px"></ul></div>
+      <div class="card"><h3>📓 交易复盘小记 <span class="tag">每日留存，期末成复盘素材</span></h3>
+        <textarea id="jText" class="journal" placeholder="今天操作了什么？哪笔该克制？哪些教训？写下来……"></textarea>
+        <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+          <button class="btn sm" onclick="saveJournal()">保存今日复盘</button>
+          <span class="stamp" id="jStamp"></span>
+        </div>
+        <div id="jHist" style="margin-top:6px"></div>
+      </div>
+    </div>
+    <div class="card" style="grid-column:1/-1"><h3>👀 自选股监控 <span class="tag">盘中涨幅 &gt;5% 触发异动预警</span></h3>
+      <div class="tabbar" id="wlModeTabs" style="margin:2px 0 12px">
+        <button class="tab active" onclick="setWatchMode('list')">📋 监控列表</button>
+        <button class="tab" onclick="setWatchMode('screen')">🎯 策略选股</button>
+      </div>
+      <div id="wlListPane">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">
+          <div class="tabbar" id="wlTabs" style="margin:0"><button class="tab active" data-f="all" onclick="setWatchFilter('all')">全部</button><button class="tab" data-f="hold" onclick="setWatchFilter('hold')">已持仓</button><button class="tab" data-f="watch" onclick="setWatchFilter('watch')">仅观察</button></div>
+          <input id="wlSearch" placeholder="搜索名称/代码" style="flex:1;min-width:110px" oninput="onWatchSearch(this.value)">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px">
+          <input id="wlTag" placeholder="打标：代码/名称,板块  (如 300308,PCB 或 中际旭创,算力)" style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter')applyWatchTag()">
+          <button class="btn sm" onclick="applyWatchTag()">🏷 打标</button>
+          <span class="stamp" id="wlTagMsg"></span>
+        </div>
+        <div id="watchlist"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:flex-end;flex-wrap:wrap">
+          <label class="fl" style="width:110px">名称<input id="wlName" placeholder="如 中际旭创"></label>
+          <label class="fl" style="width:110px">代码<input id="wlCode" placeholder="如 300308"></label>
+          <button class="btn sm" onclick="addWatch()">+ 添加自选</button>
+          <button class="btn sm ghost" onclick="openBulk('watch')">📥 批量导入</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <input id="wlCmd" placeholder="指令：添加自选 中际旭创/300308" style="flex:1;min-width:0" onkeydown="if(event.key==='Enter')runWatchCmd()">
+          <button class="btn sm" onclick="runWatchCmd()">执行</button>
+        </div>
+        <div class="cmd" style="margin-top:8px"><code>添加自选 名称/代码 · 添加自选 300308 · 删除自选 名称或代码 · 多只用逗号分隔；买入了点「转持仓」</code></div>
+        <div id="wlCmdMsg" class="stamp" style="margin-top:6px;display:block"></div>
+      </div>
+      <div id="wlScreenPane" style="display:none">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:2px 0 12px">
+          <span class="stamp">按选股策略筛选你的自选+持仓：</span>
+          <button class="chip active" data-st="all" onclick="selStrategy('all')">全部</button>
+          <button class="chip" data-st="zt" onclick="selStrategy('zt')">涨停板</button>
+          <button class="chip" data-st="strong" onclick="selStrategy('strong')">强势拉升</button>
+          <button class="chip" data-st="vol" onclick="selStrategy('vol')">放量突破</button>
+          <button class="chip" data-st="macd" onclick="selStrategy('macd')">MACD金叉</button>
+          <button class="chip" data-st="ma" onclick="selStrategy('ma')">均线多头</button>
+          <button class="chip" data-st="lb" onclick="selStrategy('lb')">连板</button>
+          <button class="chip" data-st="main" onclick="selStrategy('main')">主力净流入</button>
+          <button class="chip" data-st="low" onclick="selStrategy('low')">低价小盘题材</button>
+          <button class="btn sm" onclick="refreshWatchScreen()" style="margin-left:auto">🔄 刷新筛选</button>
+        </div>
+        <details class="param-box" style="margin:4px 0 10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg)">
+          <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--brand)">⚙ 策略参数（改动即时重算 · 导出公式时同步带入）</summary>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;align-items:flex-end">
+            <label class="fl" style="width:120px">低价上限(元)<input type="number" id="p_price" value="20" step="1" oninput="onParamChange()"></label>
+            <label class="fl" style="width:120px">市值上限(亿)<input type="number" id="p_mcap" value="100" step="10" oninput="onParamChange()"></label>
+            <label class="fl" style="width:110px">量比阈值<input type="number" id="p_vb" value="3" step="0.5" oninput="onParamChange()"></label>
+            <label class="fl" style="width:120px">主力净(亿)<input type="number" id="p_main" value="1" step="0.5" oninput="onParamChange()"></label>
+            <label class="fl" style="width:110px">连板阈值<input type="number" id="p_lb" value="2" step="1" oninput="onParamChange()"></label>
+          </div>
+          <div style="font-size:12px;color:var(--sub);margin-top:8px">强度分权重：涨停 <b id="w_zt">60</b> · 每板 <b id="w_lb">15</b> · 金叉 <b id="w_macd">20</b> · 均线多头 <b id="w_ma">15</b> · 主力 <b id="w_main">12</b> · 放量 <b id="w_vol">8</b>（默认，可在源码区微调）</div>
+        </details>
+        <div id="screenList" class="grid g3"></div>
+        <div class="cmd" style="margin-top:10px"><code>对助研说："用【放量突破】策略筛选我的自选+持仓"可让我按需跑一遍并写入数据中枢</code></div>
+      </div>
+    </div>
+    <div class="card" style="grid-column:1/-1"><h3>🩺 持仓健康分层 <span class="tag">按浮动盈亏自动归档，先看红区</span></h3>
+      <div id="posTier" class="grid g3" style="gap:12px"></div>
+    </div>
+    <div class="card"><h3>🧮 止盈止损计算器</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <label class="fl" style="width:92px">成本价<input type="number" step="0.01" id="calcCost" placeholder="17.60"></label>
+        <label class="fl" style="width:92px">持股数<input type="number" id="calcQty" placeholder="500"></label>
+        <label class="fl" style="width:82px">止损%<input type="number" id="calcSL" value="7"></label>
+        <label class="fl" style="width:82px">止盈%<input type="number" id="calcTP" value="15"></label>
+        <button class="btn sm" onclick="runCalc()">计算</button>
+      </div>
+      <div id="calcOut" style="margin-top:12px;font-size:13px;line-height:2"></div>
+    </div>
+    <div class="card" style="grid-column:1/-1"><h3>💼 我的持仓 <span class="tag" id="holdTotal"></span></h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:2px 0 12px">
+        <button class="btn sm" onclick="refreshHoldQuotes()">🔄 刷新行情</button>
+        <span class="stamp" id="holdStamp">现价来自你点击刷新时的实时行情</span>
+        <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn sm ghost" onclick="exportImage()">🖼 导出图片</button>
+          <button class="btn sm ghost" onclick="exportJson()">📄 导出JSON</button>
+          <button class="btn sm ghost" onclick="pickImage()">📷 截图导入</button>
+          <button class="btn sm ghost" onclick="importJson()">📋 粘贴导入</button>
+          <button class="btn sm ghost" onclick="resetStocks()">↺ 恢复初始清单</button>
+        </span>
+      </div>
+      <table class="tb"><thead><tr><th>名称</th><th>代码</th><th>成本</th><th>现价</th><th>今涨</th><th>数量</th><th>市值</th><th>盈亏</th><th>盈亏额</th><th>备注</th><th>操作</th></tr></thead><tbody id="holdings"></tbody></table>
+      <p class="hint" id="dsNote" style="margin-top:10px"></p>
+      <div style="display:flex;gap:8px;margin-top:14px;align-items:flex-end;flex-wrap:wrap">
+        <label class="fl" style="width:120px">名称<input id="hdName" placeholder="留空自动补全"></label>
+        <label class="fl" style="width:108px">代码<input id="hdCode" placeholder="如 300308"></label>
+        <label class="fl" style="width:88px">成本价<input type="number" step="0.01" id="hdCost" placeholder="17.60"></label>
+        <label class="fl" style="width:76px">股数<input type="number" id="hdShares" placeholder="500"></label>
+        <label class="fl" style="width:106px">现价(可选)<input type="number" step="0.01" id="hdPrice" placeholder="不填=成本"></label>
+        <button class="btn sm" onclick="addHold()">+ 添加持仓</button>
+        <button class="btn sm ghost" onclick="openBulk('hold')">📥 批量导入</button>
+      </div>
+      <div class="cmd" style="margin-top:8px"><code>持仓清单完全由你掌控：「改」调成本/股数/备注 · 「减仓」部分卖出 · 「删」清仓。同一代码再次添加＝加仓（自动算加权成本）。数据存本机浏览器，换设备用「导出/导入」搬迁。</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 模块二 ============ -->
+
+<section class="module" id="m2">
+  <h2 class="sec">身心管理</h2>
+  <p class="hint">数据存于本机浏览器，可一键导出 CSV 交给我同步至 ima 知识库</p>
+  <div class="grid g2 health-grid">
+    <!-- 天气：紧凑整行 + GPS 定位 -->
+    <div class="card weather-card" style="grid-column:1/-1">
+      <h3>🌤 天气 <span class="tag">GPS 自动定位 · 可手动切换</span></h3>
+      <div class="weather-row">
+        <input id="wxCity" value="厦门" style="width:110px" placeholder="城市">
+        <button class="btn sm" onclick="manualLoad()">查询</button>
+        <button class="btn sm ghost" onclick="useMyLocation()">📍 用我的位置</button>
+        <span id="wxOut"></span>
+      </div>
+      <div class="stamp" id="wxStatus" style="margin-top:6px;color:var(--sub)">定位中…</div>
+    </div>
+
+    <!-- 健康数据录入：跨两行，填满右侧空间 -->
+    <div class="card health-input" style="grid-row:span 2">
+      <h3>✏️ 健康数据录入</h3>
+      <div class="form-grid">
+        <label class="fl">日期<input type="date" id="hDate"></label>
+        <label class="fl">体重 (kg)<input type="number" step="0.1" id="hWeight" placeholder="如 52.5"></label>
+        <label class="fl">身高 (cm，算BMI)<input type="number" id="hHeight" placeholder="如 165"></label>
+        <label class="fl">收缩压 (mmHg)<input type="number" id="hBpHigh" placeholder="如 120"></label>
+        <label class="fl">舒张压 (mmHg)<input type="number" id="hBpLow" placeholder="如 80"></label>
+        <label class="fl">睡眠 (小时)<input type="number" step="0.5" id="hSleep" placeholder="目标 7 小时" oninput="updGoalBars()"></label>
+        <label class="fl">喝水量 (杯)<input type="number" id="hWater" placeholder="目标 8 杯" oninput="updGoalBars()"></label>
+        <label class="fl">今日心情<select id="hMood"><option value="">不记</option><option>😊 不错</option><option>😐 一般</option><option>😟 偏低</option><option>😴 疲惫</option></select></label>
+        <label class="fl">早餐<input id="hBreakfast" placeholder="如 豆浆+鸡蛋"></label>
+      </div>
+      <div class="form-grid" style="margin-top:12px">
+        <label class="fl">午餐<input id="hLunch" placeholder="如 米饭+青菜+瘦肉"></label>
+        <label class="fl">晚餐<input id="hDinner" placeholder="如 杂粮粥+豆腐"></label>
+        <label class="fl period-check"><input type="checkbox" id="hPeriod"> 经期开始日</label>
+      </div>
+      <label class="fl" style="margin-top:12px">身体不适感<textarea id="hSymptom" rows="2" placeholder="如 头痛、胃胀、疲劳、肩颈酸痛等"></textarea></label>
+      <div id="goalsNow" class="goals-row">
+        <div class="goal-bar"><div class="goal-label">💧 喝水进度 <span id="gwTxt"></span></div><div class="progress"><div id="gwBar" style="background:linear-gradient(90deg,#2f5575,#4a7a66)"></div></div></div>
+        <div class="goal-bar"><div class="goal-label">😴 睡眠进度 <span id="gsTxt"></span></div><div class="progress"><div id="gsBar" style="background:linear-gradient(90deg,#3aa675,#7bce9c)"></div></div></div>
+      </div>
+      <div class="health-actions">
+        <button class="btn" onclick="saveHealth()">保存记录</button>
+        <button class="btn ghost" onclick="exportHealthCSV()">导出 CSV</button>
+      </div>
+      <p class="hint" id="bmiOut" style="margin-top:10px"></p>
+    </div>
+
+    <!-- 周期预测 -->
+    <div class="card period-card">
+      <h3>🌸 周期预测</h3>
+      <div id="periodOut"></div>
+    </div>
+
+    <!-- 养生小贴士 -->
+    <div class="card wellness-card">
+      <h3>🍵 养生小贴士 <span class="tag">顺应节气 · 参考经典</span></h3>
+      <div id="wellnessOut"></div>
+    </div>
+
+    <!-- 趋势图 -->
+    <div class="card">
+      <h3>⚖️ 体重趋势（近30天）</h3>
+      <div class="chart-wrap">
+        <canvas id="chWeight" height="180"></canvas>
+        <div class="chart-empty" id="emptyWeight">暂无体重记录<br>录入体重后将自动生成趋势图</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>💧 喝水 & 😴 睡眠 趋势（近14天）</h3>
+      <div class="chart-wrap">
+        <canvas id="chHabit" height="180"></canvas>
+        <div class="chart-empty" id="emptyHabit">暂无喝水/睡眠记录<br>录入后将自动生成趋势图</div>
+      </div>
+    </div>
+
+    <!-- 健康建议 -->
+    <div class="card" style="grid-column:1/-1">
+      <h3>💡 今日健康建议</h3>
+      <div id="healthAdvice" style="font-size:13px;line-height:1.9"></div>
+    </div>
+
+    <!-- 民生健康动态：医保 / 养老 / 社区通知 -->
+    <div class="card" style="grid-column:1/-1">
+      <h3>🏥 民生健康动态 <span class="tag" id="civicStamp">医保 · 养老 · 社区通知</span></h3>
+      <div id="civicList" style="font-size:13px;line-height:1.7"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 模块三 ============ -->
+<section class="module" id="m3">
+  <h2 class="sec">智能备课助手</h2>
+  <p class="hint">数据源：ima「教学」知识库 · 生涯规划系列课程（8子库） / 2-2026创新创业基础 · 点「复制」后粘贴到对话即可执行</p>
+  <div class="grid g2">
+
+    <div class="card" style="grid-column:1/-1"><h3>🧭 备课工作台 <span class="tag">一键生成 → 编辑区改写 → 复制执行</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end">
+        <label class="fl" style="width:200px">课程<input id="prepCourse" placeholder="如：创新创业基础" value="创新创业基础"></label>
+        <label class="fl" style="width:200px">章节<input id="prepChapter" placeholder="如：商业模式画布" value="商业模式画布"></label>
+        <span class="stamp" id="prepDocStamp" style="margin-left:auto"></span>
+      </div>
+      <div class="gen-bar">
+        <button class="btn sm" onclick="genInsert('xueqing')">① 学情分析</button>
+        <button class="btn sm" onclick="genInsert('jiaoan')">② 教案框架</button>
+        <button class="btn sm" onclick="genInsert('huodong')">③ 课堂活动</button>
+        <button class="btn sm" onclick="genInsert('dagang')">④ 课件大纲</button>
+        <button class="btn sm ghost" onclick="genAll()">⚡ 一键生成全部</button>
+      </div>
+      <div class="prep-layout">
+        <div class="prep-doc">
+          <div class="prep-toolbar">
+            <button class="btn sm ghost active" id="prepEditBtn" onclick="setPrepMode('edit')">✏️ 编辑</button>
+            <button class="btn sm ghost" id="prepPrevBtn" onclick="setPrepMode('preview')">👁 预览</button>
+            <button class="btn sm ghost" onclick="copyPrepDoc()">📋 复制全文</button>
+            <button class="btn sm ghost" onclick="clearPrepDoc()">🗑 清空</button>
+            <span class="spacer"></span>
+            <span class="prep-status" id="prepStatus">💾 草稿已自动保存</span>
+          </div>
+          <textarea id="prepDoc" placeholder="点上方按钮一键生成教案框架 / 课堂活动 / 课件大纲，内容会直接插入这里；你可继续改写，或把 AI 的回答粘贴进来调整。写一半关掉也不丢。"></textarea>
+          <div id="prepPreview" style="display:none"></div>
+          <p class="prep-hint">💡 草稿自动存在本机浏览器，下次打开自动恢复。支持 Markdown（标题 / 列表 / 表格 / 代码），点「预览」查看排版。</p>
+        </div>
+        <div class="prep-side">
+          <h3 style="font-size:14px;margin-bottom:6px">🧰 教研 / AI 工具 <span class="tag">点一下跳转</span></h3>
+          <div class="tile-grid" id="tileGrid"></div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <input id="tileName" placeholder="名称" style="flex:1;min-width:0">
+            <input id="tileUrl" placeholder="https://..." style="flex:1.4;min-width:0">
+            <button class="btn sm" onclick="addTile()">＋</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1"><h3>📚 AI 提示词模板库 <span class="tag">点标签插入，悬停看提示词，小图标复制</span></h3>
+      <div class="tpl-bar">
+        <input id="tplFilter" placeholder="🔍 搜索模板，如：学情 / 案例 / 思政" oninput="renderTplLib(this.value)">
+        <button class="btn sm ghost" id="tplAddBtn" onclick="toggleTplAdd()">＋ 新增模板</button>
+      </div>
+      <div id="tplLib"></div>
+      <div class="tpl-add" id="tplAddBox">
+        <label class="fl" style="width:120px">分类<input id="ntCat" placeholder="如：互动设计"></label>
+        <label class="fl" style="width:160px">标题<input id="ntTitle" placeholder="如：小组辩论"></label>
+        <label class="fl" style="flex:1;min-width:200px">提示词<input id="ntPrompt" placeholder="写给 AI 的提示词…"></label>
+        <button class="btn sm" onclick="addTpl()">保存</button>
+        <button class="btn sm ghost" onclick="toggleTplAdd()">取消</button>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1"><h3>🎬 PPT 制作台 <span class="tag">选参数 → 一键拼指令 → 复制给助研</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end">
+        <label class="fl" style="width:170px">课程<select id="pptCourse" onchange="loadChapters()">
+          <option>大学生职业生涯规划</option><option>创新创业基础</option></select></label>
+        <label class="fl" style="width:190px">章节<select id="pptChapter"></select></label>
+        <label class="fl" style="width:96px">页数<select id="pptPages"><option>12-15</option><option selected>15-20</option><option>20-25</option></select></label>
+        <label class="fl" style="width:120px">风格<select id="pptStyle">
+          <option value="简约商务·深蓝(#1d4e89)+白">简约商务·深蓝</option>
+          <option value="清新学院风·蓝粉渐变">清新学院风·蓝粉</option>
+          <option value="科技感·深色底+荧光点缀">科技感·深色</option>
+          <option value="大赛答辩风·稳重克制、信息密度高">大赛答辩风</option></select></label>
+        <label class="fl" style="width:96px">学时<select id="pptMin"><option>45</option><option selected>90</option><option>135</option></select></label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="btn sm" onclick="buildPPT('outline')">① 先出大纲</button>
+        <button class="btn sm" onclick="buildPPT('make')">② 直接做PPT</button>
+        <button class="btn sm ghost" onclick="buildPPT('speech')">③ 配讲稿</button>
+        <button class="btn sm ghost" onclick="buildPPT('quiz')">④ 随堂测</button>
+        <button class="btn sm ghost" onclick="buildPPT('lesson')">⑤ 大赛教案</button>
+        <button class="btn sm ghost" onclick="copyBox('pptPrompt')">复制指令</button>
+      </div>
+      <textarea id="pptPrompt" class="journal" style="min-height:96px" placeholder="点上方按钮自动拼装指令，可手动微调后复制给我"></textarea>
+      <p class="hint" style="margin-top:8px">五个按钮对应备课全链路：大纲 → 成品 → 讲稿 → 测验 → 教案。下方为标准页结构，生成时逐项对照。</p>
+      <ol class="slide-struct">
+        <li>封面（课程名 + 章节名 + 授课人）</li>
+        <li>目录 / 本章导图</li>
+        <li>学情与目标（三维目标）</li>
+        <li>重难点提示</li>
+        <li>核心知识点 1–N（每点配一图/一表）</li>
+        <li>真实案例（95后/00后创业或职场实例）</li>
+        <li>课堂互动环节（投票/讨论/模拟）</li>
+        <li>随堂练习</li>
+        <li>本节小结 + 思维导图</li>
+        <li>分层作业 + 延伸阅读</li>
+        <li>封底（致谢 / 二维码）</li>
+      </ol>
+    </div>
+
+    <div class="card" style="grid-column:1/-1"><h3>🧩 教学流程生成器 <span class="tag">选教学法 → 自动排时间轴</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end">
+        <label class="fl" style="width:190px">章节<input id="flowCh" list="flowChList" placeholder="选择或输入章节，如：商业模式画布"></label>
+        <datalist id="flowChList"></datalist>
+        <label class="fl" style="width:96px">时长(分钟)<select id="flowMin"><option>45</option><option selected>90</option></select></label>
+        <label class="fl" style="width:170px">教学法<select id="flowModel" onchange="renderFlowMap()">
+          <option value="six">标准六段式</option>
+          <option value="bopc">BOPPPS 模型</option>
+          <option value="task">任务驱动 / 项目式</option>
+          <option value="case">案例研讨式</option>
+          <option value="flip">翻转课堂</option></select></label>
+        <button class="btn sm" onclick="buildFlow()">生成讲授流程</button>
+        <button class="btn sm ghost" onclick="copyBox('flowPrompt')">复制指令</button>
+      </div>
+      <div class="flow" id="flowMap"></div>
+      <textarea id="flowPrompt" class="journal" style="min-height:70px" placeholder="点按钮自动生成含时间轴的讲授流程指令"></textarea>
+      <p class="hint" style="margin-top:6px">时间轴按所选教学法与时长自动分配，生成的指令会要求逐段给出教师动作、学生活动、关键提问与板书要点。</p>
+    </div>
+
+
+    <div class="card"><h3>📅 本周备课计划 <span class="tag">可勾选，存本机</span></h3>
+      <div id="prepPlan"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="ppInput" placeholder="如：周三前备完「自我认知」" style="flex:1">
+        <button class="btn sm" onclick="addPrep()">添加</button>
+      </div>
+    </div>
+
+    <div class="card"><h3>🗃 备课产出记录 <span class="tag">沉淀复用</span></h3>
+      <div id="prepLog"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="plInput" placeholder="如：《商业模式画布》PPT v1" style="flex:1">
+        <button class="btn sm" onclick="addLog()">记录</button>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1"><h3>📂 知识库课程地图</h3>
+      <table class="tb"><thead><tr><th>课程</th><th>ima 文件夹</th><th>规模</th><th>用法</th></tr></thead><tbody>
+      <tr><td>大学生职业生涯规划</td><td>生涯规划系列课程</td><td>8 个文件 / 8 个子文件夹</td><td>直接点名章节即可调库取材</td></tr>
+      <tr><td>创新创业基础</td><td>2-2026创新创业基础</td><td>4 个文件 / 2 个子文件夹</td><td>含 2026 最新大纲与课件</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 模块四 ============ -->
+<section class="module" id="m4">
+  <h2 class="sec">前沿探索与课题申报</h2>
+  <p class="hint">工商管理 · 职业生涯规划 / 创新创业教育方向 · 每周一 9:00 自动扫描 <span class="stamp" id="resStamp"></span></p>
+  <div class="grid g2">
+    <div class="card" style="grid-column:1/-1"><h3>📢 最新课题申报机会 <span class="tag" id="grantCount"></span></h3>
+      <div class="tabs" id="grantTabs" style="margin-bottom:8px">
+        <span class="tb-btn on" onclick="filterGrants('all',this)">全部</span>
+        <span class="tb-btn" onclick="filterGrants('todo',this)">待申报</span>
+        <span class="tb-btn" onclick="filterGrants('star',this)">已收藏</span>
+      </div>
+      <table class="tb"><thead><tr><th>课题名称</th><th>申报单位</th><th>截止</th><th>状态</th><th>操作</th></tr></thead><tbody id="grants"></tbody></table>
+      <div id="grantsEmpty" class="empty">等待首次扫描——每周一自动更新国家社科基金 / 福建省教育厅 / 教育部人文社科等来源</div>
+    </div>
+    <div class="card"><h3>📄 本周最新论文</h3><div id="papers"></div></div>
+    <div class="card"><h3>📊 行业研究报告</h3><div id="reports"></div></div>
+  </div>
+</section>
+
+<!-- ============ 模块五 ============ -->
+<section class="module" id="m5">
+  <h2 class="sec">任务指挥官</h2>
+  <p class="hint">红=紧急重要 · 黄=重要不紧急 · 蓝=普通 · 支持拖拽换栏；可加备注、点「编辑」改内容；对话创建的任务由我写入并同步提醒</p>
+  <div class="card" id="syncCenter" style="margin-bottom:16px;background:linear-gradient(135deg,#eef3ff,#fdeef6)">
+    <h3>☁️ 同步中心 <span class="tag">本机 ↔ 云端数据中枢</span></h3>
+    <p class="hint">任务 / 健康录入默认存本机浏览器。点下方按钮复制同步指令，发给我即可合并进云端 <code>data.js</code>——此后多设备共享，自动化也能接管逾期提醒与周期预测。</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="syncTasks()">📋 复制任务同步指令（<span id="syncTaskN">0</span> 条本机）</button>
+      <button class="btn" onclick="syncHealth()">📋 复制健康同步指令（<span id="syncHealthN">0</span> 条本机）</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>📊 任务完成率 <span class="tag" id="rateTxt"></span></h3>
+    <div class="progress"><div id="rateBar"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px"><h3>🎯 今日聚焦 <span class="tag">临近截止 + 进行中</span></h3><div id="focusList"></div></div>
+  <div class="card" style="margin-bottom:16px"><h3>➕ 新建任务</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <label class="fl" style="flex:2;min-width:200px">任务描述<input id="tDesc" placeholder="要做什么…"></label>
+      <label class="fl">截止日期<input type="date" id="tDue"></label>
+      <label class="fl">紧急程度<select id="tPri"><option value="red">红 · 紧急/重要</option><option value="yellow">黄 · 重要/不紧急</option><option value="blue" selected>蓝 · 普通</option></select></label>
+      <label class="fl" style="flex:1;min-width:150px">备注(可选)<input id="tNote" placeholder="如：需附课程大纲"></label>
+      <button class="btn" id="tAddBtn" onclick="addTask()">添加</button>
+    </div>
+    <div class="cmd" style="margin-top:10px"><code>或对助研说：“添加任务：XXX，截止时间：2026-08-10，紧急程度：红”</code></div>
+  </div>
+  <div class="kanban">
+    <div class="kcol" data-st="todo"><h4>待开始 <span id="cTodo"></span></h4><div class="kbody"></div></div>
+    <div class="kcol" data-st="doing"><h4>进行中 <span id="cDoing"></span></h4><div class="kbody"></div></div>
+    <div class="kcol" data-st="done"><h4>已完成 <span id="cDone"></span></h4><div class="kbody"></div></div>
+  </div>
+</section>
+
+<!-- ============ 模块六 ============ -->
+<section class="module" id="m6">
+  <h2 class="sec">每日精进</h2>
+  <p class="hint">每日 8:00 自动更新 · 雅思初学者计划 <span class="stamp" id="dailyStamp"></span></p>
+  <div class="card" style="grid-column:1/-1;background:linear-gradient(135deg,#e9eef0,#f4eee1)">
+    <h3>☀️ 每日早安播报 <span class="tag" id="morningTag"></span></h3>
+    <div class="grid g2" style="gap:18px;align-items:start">
+      <div id="wxBox" style="font-size:13.5px;line-height:1.95"></div>
+      <div style="border-left:1px dashed var(--line);padding-left:18px" id="qBox"></div>
+    </div>
+  </div>
+  <!-- 上排：习惯打卡（左） + 番茄钟/书影金句（右，纵向上下并排） -->
+  <div class="grid g2" style="align-items:stretch">
+    <!-- 左：习惯打卡 -->
+    <div class="card"><h3>✅ 习惯打卡 <span class="tag" id="streakTxt"></span></h3>
+      <div class="punch">
+        <button class="pbtn" data-p="阅读" onclick="punch(this)">📖 阅读打卡</button>
+        <button class="pbtn" data-p="单词" onclick="punch(this)">🔤 单词打卡</button>
+        <button class="pbtn" data-p="运动" onclick="punch(this)">🏃 运动打卡</button>
+        <button class="pbtn" data-p="早睡" onclick="punch(this)">🌙 早睡打卡</button>
+      </div>
+      <div id="calBox"></div>
+    </div>
+    <!-- 右：番茄钟 + 书影金句 纵向上下并排 -->
+    <div class="stack" style="gap:18px;height:100%">
+      <div class="card"><h3>⏳ 专注番茄钟 <span class="tag" id="focusTime">25:00</span></h3>
+        <div style="text-align:center;padding:6px 0">
+          <div id="pomoRing" style="font-size:34px;font-weight:700;color:var(--brand);letter-spacing:2px">25:00</div>
+          <!-- 自由设定时长 -->
+          <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;align-items:center">
+            <button class="btn sm ghost" onclick="pomoSet(15)">15′</button>
+            <button class="btn sm ghost" onclick="pomoSet(25)">25′</button>
+            <button class="btn sm ghost" onclick="pomoSet(45)">45′</button>
+            <label style="font-size:12px;color:var(--sub);display:inline-flex;align-items:center;gap:4px">自定
+              <input id="pomoMin" type="number" min="1" max="180" value="25" style="width:56px;padding:4px 6px"> 分
+            </label>
+            <button class="btn sm ghost" onclick="pomoApply()">设定</button>
+          </div>
+          <!-- 控制 + 倒计时提醒开关 -->
+          <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;align-items:center">
+            <button class="btn sm" onclick="pomoStart()">开始</button>
+            <button class="btn sm ghost" onclick="pomoPause()">暂停</button>
+            <button class="btn sm ghost" onclick="pomoReset()">重置</button>
+            <label style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--sub);cursor:pointer;user-select:none">
+              <input type="checkbox" id="pomoBell" checked onchange="pomoBellToggle(this)"
+                style="width:auto;height:auto;padding:0;margin:0 0 0 4px;border:none;border-radius:0;accent-color:var(--brand)"> 🔔 提醒
+            </label>
+          </div>
+          <p class="hint" id="pomoStat" style="margin-top:8px"></p>
+          <p id="pomoMsg" style="margin-top:4px;font-size:12.5px;color:var(--brand);min-height:16px"></p>
+        </div>
+      </div>
+      <div class="card" style="flex:1;display:flex;flex-direction:column"><h3>📚 每日一书/影</h3><div id="quoteBook" style="font-size:13.5px;line-height:1.85;flex:1;display:flex;flex-direction:column"></div></div>
+    </div>
+  </div>
+  <!-- 其余卡片 -->
+  <div class="grid g2">
+    <div class="card"><h3>📰 今日深度阅读 <span class="tag">科技 · 财经 · 教育</span></h3><div id="news"></div></div>
+    <div class="card"><h3>🗣 雅思口语 Part 2</h3><div id="ieltsSp" style="font-size:13px;line-height:1.8"></div></div>
+    <div class="card"><h3>📄 雅思阅读真题</h3><div id="ieltsRd" style="font-size:13px;line-height:1.8"></div></div>
+    <div class="card" style="grid-column:1/-1"><h3>🔤 今日 10 词</h3><div class="vocab-grid" id="vocab"></div></div>
+  </div>
+</section>
+
+</main>
+</div>
+<footer>每日三省 工作台 · 由助研驱动 · 数据文件 data.js 每日自动刷新</footer>
+
+<script src="data.js"></script>
+<script>
+const D = window.WB_DATA || {};
+let poolQuotes = {};   // 实时行情缓存（提前声明，避免 renderWatch 早于声明点执行触发 TDZ）
+const DISC = ['总仓位不超过可承受上限，单票仓位≤20%','开盘前已看大盘环境与隔夜外围','买入前确认：技术+资金+消息三维共振','预设止损位（短线-7%或跌破5日线）','不追高：涨幅>5%的票等回踩再定','昨日操作已复盘，今日计划已明确'];
+
+/* ===== 云端实时同步（GitHub 仓库当后端）=====
+   enabled=false → 降级为 localStorage（现状）；enabled=true → 前端用 PAT 直连 GitHub Contents API，
+   把任务/健康统一存成仓库里的 cloud_data.json，任意设备实时共享，无需「复制指令发我」。
+   凭证由 Jill 在 GitHub 生成仅本仓库的 PAT 后填入 data.js 顶部 WB_DATA.cloud。 */
+const CLOUD = { ok:false, sha:null };
+let CLOUD_DATA = null;   // 云端 cloud_data.json 的内存副本
+function initCloud(){
+  const c = D.cloud||{};
+  if(!c.enabled || !c.token || !c.owner || !c.repo || !c.path){ CLOUD.ok=false; return; }
+  CLOUD.ok = true;
+}
+function ghHeaders(){
+  return { 'Authorization':'token '+D.cloud.token, 'Content-Type':'application/json', 'Accept':'application/vnd.github+json' };
+}
+function ghApi(){
+  const c=D.cloud;
+  return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${encodeURIComponent(c.path)}?ref=${c.branch||'main'}`;
+}
+async function ghGet(){
+  const r = await fetch(ghApi(), { headers: ghHeaders() });
+  if(r.status===404) return null;
+  if(!r.ok) throw new Error('ghGet '+r.status);
+  const j = await r.json();
+  CLOUD.sha = j.sha;
+  const txt = decodeURIComponent(escape(atob(j.content.replace(/\s/g,''))));
+  return JSON.parse(txt);
+}
+async function ghPut(obj){
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(obj,null,2))));
+  const body = { message:'workbench sync '+new Date().toISOString(), content, branch:D.cloud.branch||'main' };
+  if(CLOUD.sha) body.sha = CLOUD.sha;
+  const r = await fetch(ghApi(), { method:'PUT', headers:ghHeaders(), body:JSON.stringify(body) });
+  if(!r.ok) throw new Error('ghPut '+r.status);
+  const j = await r.json();
+  CLOUD.sha = j.content.sha;
+}
+async function loadCloudData(){
+  if(!CLOUD.ok) return;
+  try{
+    let data = await ghGet();
+    if(!data){
+      // 仓库里还没有文件，用 data.js 内联种子初始化并创建
+      data = { tasks:D.tasks||[], health:D.health||[], healthAdvice:D.healthAdvice||{nextPeriod:null,advice:[]}, meta:D.meta||{height:null} };
+      await ghPut(data);
+    }
+    CLOUD_DATA = data;
+    D.tasks = data.tasks||[]; D.health = data.health||[];
+    D.healthAdvice = data.healthAdvice||{nextPeriod:null,advice:[]};
+    D.meta = data.meta||{height:null};
+    renderHealth(); renderTasks();
+  }catch(e){ console.warn('loadCloud 失败，降级本地', e); CLOUD.ok=false; refreshSyncCard(); renderHealth(); renderTasks(); }
+}
+async function cloudSaveHealth(rec){
+  if(!CLOUD.ok) return;
+  const data = CLOUD_DATA || { tasks:D.tasks||[], health:[], healthAdvice:D.healthAdvice||{}, meta:D.meta||{} };
+  const arr = (data.health||[]).filter(r=>r.date!==rec.date); arr.push(rec);
+  arr.sort((a,b)=>a.date<b.date?-1:1); data.health=arr; CLOUD_DATA=data; D.health=arr;
+  ghPut(data).then(()=>renderHealth()).catch(e=>console.warn('cloudSaveHealth',e));
+}
+async function cloudUpsertTask(obj, id){
+  if(!CLOUD.ok) return;
+  const data = CLOUD_DATA || { tasks:[], health:D.health||[], healthAdvice:D.healthAdvice||{}, meta:D.meta||{} };
+  let arr = data.tasks||[];
+  if(id!=null && id!==undefined){
+    const i = arr.findIndex(t=>t.id===id);
+    if(i>=0) arr[i]={...arr[i],...obj,id}; else arr.push({id,...obj});
+  } else { obj.id = obj.id||Date.now(); arr.push(obj); }
+  data.tasks = arr; CLOUD_DATA = data; D.tasks = arr;
+  ghPut(data).then(()=>renderTasks()).catch(e=>console.warn('cloudUpsertTask',e));
+}
+function refreshSyncCard(){
+  const card=document.getElementById('syncCenter'); if(!card)return;
+  if(CLOUD.ok){
+    card.outerHTML='<div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,#e7f7ee,#eef3ff)"><h3>☁️ 云端实时同步 <span class="tag" style="background:var(--up);color:#fff">已连接 · GitHub</span></h3><p class="hint">已接入 GitHub 仓库，任务 / 健康录入<b>实时写入云端</b>，任意设备打开工作台即是最新，无需手动同步。逾期提醒与周期预测由自动化每天接管。</p></div>';
+  }
+}
+const $ = id => document.getElementById(id);
+const LS = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}, set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)) };
+const today = ()=> new Date().toISOString().slice(0,10);
+
+/* ---------- 导航 ---------- */
+const MOD_ICO={m1:'assets/icons/icon1.png',m2:'assets/icons/icon2.png',m3:'assets/icons/icon3.png',m4:'assets/icons/icon4.png',m5:'assets/icons/icon5.png',m6:'assets/icons/icon6.png'};
+function injectBtnIcons(){
+  document.querySelectorAll('.btn, .pbtn').forEach(b=>{
+    if(b.querySelector('.btn-ico'))return;
+    const mod=b.closest('.module'); if(!mod)return;
+    const src=MOD_ICO[mod.id]; if(!src)return;
+    const img=document.createElement('img'); img.className='btn-ico'; img.src=src; img.alt='';
+    b.insertBefore(img,b.firstChild);
+  });
+}
+document.querySelectorAll('nav .item').forEach(it=>it.onclick=()=>{
+  document.querySelectorAll('nav .item').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.module').forEach(x=>x.classList.remove('active'));
+  it.classList.add('active'); $(it.dataset.m).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(injectBtnIcons,60);
+});
+injectBtnIcons();
+/* 时钟 */
+setInterval(()=>{ $('clock').textContent = new Date().toLocaleString('zh-CN',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}); },1000);
+/* 指令复制 */
+document.querySelectorAll('.copy').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(b.parentElement.querySelector('code').textContent);b.textContent='已复制';setTimeout(()=>b.textContent='复制',1200);});
+
+/* ---------- 模块一：股票 ---------- */
+let chPie=null, chSect=null;
+/* 计时器状态：提前声明，避免下方初始化 IIFE 引用时触发 TDZ（let 在声明前处于暂时性死区） */
+let _autoTimer=null, autoRefreshOn=true;
+const AUTO_INTERVAL=90000;
+/* P0-1：研判数据新鲜度——对比 data.js 更新日期与今天，过期给出警示 */
+function todayStr(){ const n=new Date(); const p=x=>String(x).padStart(2,'0'); return n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate()); }
+function stockStaleInfo(){
+  const D=window.WB_DATA||{};
+  const ts=(D.updatedAt&&D.updatedAt.stock)||'';
+  const day=ts.slice(0,10);
+  const stale=!!day && day < todayStr();
+  return {ts,day,stale};
+}
+/* P1：自选股筛选状态（全部 / 已持仓 / 仅观察 + 名称/代码搜索） */
+let watchFilter='all', watchSearch='';
+(function(){
+  const s = D.stock||{};
+  const _stale = stockStaleInfo();
+  $('stockStamp').textContent = (D.updatedAt&&D.updatedAt.stock ? '· 更新于 '+D.updatedAt.stock : '· 等待盘前自动化首次更新') + (_stale.stale ? ' · ⚠️ 研判数据已过期，仅供参考' : '');
+  /* 大盘环境 */
+  const mk = s.market||{};
+  if(mk.indices&&mk.indices.length){
+    $('mktDate').textContent = '盘前研判 · 截止 ' + (mk.date||(D.updatedAt&&D.updatedAt.stock||'—')) + (_stale.stale?' ⚠️':'');
+    let chips = mk.indices.map(i=>`<div class="mkt-chip">${i.name}<b class="${i.chgPct>=0?'up':'down'}">${i.price} ${i.chgPct>=0?'+':''}${i.chgPct}%</b></div>`).join('');
+    if(mk.advance) chips+=`<div class="mkt-chip">涨跌家数<b><span class="up">${mk.advance.up}</span> / <span class="down">${mk.advance.down}</span></b></div>`;
+    if(mk.amount) chips+=`<div class="mkt-chip">两市成交<b>${mk.amount}</b></div>`;
+    if(mk.north) chips+=`<div class="mkt-chip">北向资金<b class="${String(mk.north).includes('-')?'down':'up'}">${mk.north}</b></div>`;
+    if(mk.mood) chips+=`<div class="mkt-chip" style="flex:1;min-width:200px">情绪研判<b style="font-weight:400;font-size:12px">${mk.mood}</b></div>`;
+    $('mkt').innerHTML=chips;
+  } else $('mkt').innerHTML='<div class="empty" style="flex:1">盘前自动化将写入四大指数、涨跌家数、成交额与北向资金</div>';
+  /* 机会卡：精选机会(我的股票池) + 实时异动由 refreshPool 填充（渲染推迟到 seed 之后，确保持仓/自选联动准确） */
+  $('poolOpps').innerHTML = '<div class="empty">点击「🔄 刷新实时行情」拉取持仓/自选股实时异动（腾讯行情接口）</div>';
+  $('oppDate').textContent = '实时行情 · ' + new Date().toLocaleDateString('zh-CN');
+  const alerts = s.alerts||[];
+  $('alerts').innerHTML = alerts.length? alerts.map(a=>{const neg=(a.type==='sell'||a.type==='risk');return `<div class="alert-item ${neg?'alert-sell':'alert-surge'}"><b>${neg?'🔻 风险预警':'🚀 异动预警'}</b><div>${a.msg}<div class="stamp">${a.time||''}</div></div></div>`}).join('') : '<div class="empty">暂无预警 · 持仓跌破5日线 / 自选涨幅超5% 时自动推送</div>';
+  $('strategies').innerHTML = (s.strategies||[]).map(t=>`<li>${t}</li>`).join('');
+  /* P0-1：预警卡截止时间 + 全局免责声明（弱化研判决策权重） */
+  $('alertStamp').textContent = '数据截止 ' + (D.updatedAt&&D.updatedAt.stock||'—') + (_stale.stale?' ⚠️':'');
+  $('stockDisc').innerHTML = '📌 大盘研判 / 预警信号 为 data.js 快照（非实时行情）；<b>「我的股票池」实时机会走腾讯实时接口</b>，仅供参考、不构成投资建议。实时价格点「🔄 刷新行情」。当前研判数据截止：<b>'+(_stale.day||'—')+'</b>' + (_stale.stale?'<span class="stale-badge">已过期，请重新生成</span>':'<span class="stale-badge" style="background:#1a9e54">今日有效</span>');
+  seedStocks();          // 首次进入：从 data.js 灌一次初始清单，之后清单归你
+  const _newHold = syncHoldSeed();     // 持仓种子版本升级：用券商App截图最新持仓替换本地
+  const _newWatch = syncWatchSeed();   // 增量同步：data.js 新增的自选股自动补进来
+  renderHold();
+  renderWatch();
+  renderOppSection();   // seed 之后渲染，准确反映「已持有 / 已在自选」联动
+  startAutoRefresh();   // 打开页面自动拉行情 + 后台每90秒轮询（仅可见时）
+  if(autoRefreshOn) setTimeout(refreshPool, 800);
+  setTimeout(refreshSectors, 1100);   // 首屏拉一次实时板块热点（盘前快照仅作兜底）
+  if(_newHold) setTimeout(()=>alert(`持仓已更新为最新截图清单：共 ${_newHold} 只`), 120);
+  if(_newWatch) wlMsg(`已自动导入 ${_newWatch} 只新自选股（来自截图批量录入）`);
+  renderDisc();
+  renderJournal();
+})();
+
+/* ============ 今日短线机会：我的股票池(实时) + 自选+持仓策略选股 ============ */
+function renderOppCards(list){
+  const held = new Set(myHold().map(h=>h.code));
+  const watched = new Set(myWatch().map(w=>w.code));
+  return list.map(o=>{
+    let link='';
+    if(held.has(o.code)) link=`<span class="tag" style="color:#fff;background:#d43d3d;border-color:#d43d3d;margin-left:6px">已持有</span>`;
+    else if(watched.has(o.code)) link=`<span class="tag" style="color:var(--brand);border-color:var(--brand);margin-left:6px">已在自选</span>`;
+    const sc = o.score?`<div style="margin-top:8px">${[['技术',o.score.tech],['资金',o.score.fund],['消息',o.score.news]].map(x=>x[1]!=null?`<div class="score"><em>${x[0]}</em><div class="bar"><i style="width:${x[1]}%"></i></div><u>${x[1]}</u></div>`:'').join('')}</div>`:'';
+    const meta = (o.position||o.stop)?`<div style="margin-top:8px;font-size:12px;color:var(--sub)">${o.position?`建议仓位：${o.position}`:''}${o.position&&o.stop?' · ':''}${o.stop?`参考止损：${o.stop}`:''}</div>`:'';
+    return `<div class="card opp"><div><span class="nm">${o.name}</span><span class="code">${o.code}</span>${link}
+    ${o.changePct!=null?`<span class="${o.changePct>=0?'up':'down'}" style="float:right;font-weight:700">${o.changePct>=0?'+':''}${o.changePct}%</span>`:''}</div>
+    <div class="reason">${o.reason||''}</div>${sc}${meta}
+    <div class="tags">${(o.tags||[]).map(t=>`<span>${t}</span>`).join('')}</div></div>`;
+  }).join('');
+}
+/* 机会卡区：渲染前重新比对持仓/自选，给出「已持有/已在自选」联动提示（需在 seed 之后调用） */
+/* ---------- 批量粘贴导入（自选 / 持仓 / 两者） ---------- */
+function openBulk(target){
+  const m=$('bulkModal'); if(!m) return;
+  m.style.display='flex';
+  const v = target==='hold' ? 'hold' : (target==='both' ? 'both' : 'watch');
+  const rb=document.querySelector('input[name=bkTarget][value="'+v+'"]'); if(rb) rb.checked=true;
+  const t=$('bkText'); if(t){ t.value=''; t.focus(); }
+  const msg=$('bkMsg'); if(msg){ msg.textContent=''; }
+}
+function closeBulk(){ const m=$('bulkModal'); if(m) m.style.display='none'; }
+function parseBulk(text){
+  const out=[];
+  (text||'').split(/\r?\n/).forEach(raw=>{
+    const line=raw.trim(); if(!line) return;
+    let code=null;
+    const m1=line.match(/\b(\d{6})\b/); if(m1) code=m1[1];
+    if(!code){ const m2=line.match(/(?:sh|sz|bj)(\d{6})/i); if(m2) code=m2[1]; }
+    if(!code) return;
+    let name=line.replace(/(?:sh|sz|bj)/i,'').replace(/\d{6}/,'').replace(/[\/,，、\s]+/g,' ').trim();
+    if(!name || /^[\s\/,，、_-]+$/.test(name)) name='';
+    out.push({code, name});
+  });
+  return out;
+}
+async function runBulkImport(){
+  const lines=parseBulk($('bkText').value);
+  const msg=$('bkMsg');
+  if(!lines.length){ if(msg){ msg.textContent='没解析到有效的 6 位代码'; msg.style.color='#d43d3d'; } return; }
+  const rb=document.querySelector('input[name=bkTarget]:checked');
+  const target=rb?rb.value:'watch';
+  const seen={}, uniq=[];
+  lines.forEach(x=>{ if(!seen[x.code]){ seen[x.code]=1; uniq.push(x); } });
+  let names={};
+  try{ const q=await txJsonp(uniq.map(x=>x.code)); uniq.forEach(x=>{ const nm=q[x.code]&&q[x.code][1]; if(nm) names[x.code]=nm; }); }catch(e){}
+  let addedW=0, addedH=0, skip=0;
+  uniq.forEach(x=>{
+    const nm=x.name||names[x.code]||codeName(x.code)||x.code;
+    if(target==='watch'||target==='both'){
+      const arr=myWatch();
+      if(arr.some(w=>w.code===x.code)){ skip++; }
+      else { arr.push({name:nm,code:x.code}); setWatch(arr); addedW++; }
+    }
+    if(target==='hold'||target==='both'){
+      const arr=myHold();
+      if(arr.some(h=>h.code===x.code)){ skip++; }
+      else { arr.push({name:nm,code:x.code,cost:null,shares:null,price:null,pnlPct:null,note:''}); setHold(arr); addedH++; }
+    }
+  });
+  renderWatch(); renderHold(); refreshPool();
+  if(msg){ msg.style.color='#1a9e54'; msg.textContent='成功：自选 +'+addedW+' · 持仓 +'+addedH+' · 跳过重复 '+skip; }
+  setTimeout(closeBulk, 900);
+}
+/* 机会卡区（第三种方案）：不再读静态 opportunities 快照，改为基于持仓+自选的腾讯实时行情，
+   按「实时强度分」排序生成今日实时机会卡片，随 90 秒自动刷新更新 */
+function livePoolTags(x){
+  const lim=limitPct(x.code); const t=[];
+  if(x.chg!=null&&x.chg>=lim-0.5)t.push('涨停');
+  else if(x.chg!=null&&x.chg>=5)t.push('异动');
+  if(x.vb!=null&&x.vb>=3&&x.chg>0)t.push('放量');
+  if(x.turn!=null&&x.turn>=10)t.push('高换');
+  if(x.chg!=null&&x.chg<0)t.push('回调');
+  return t;
+}
+function livePoolScore(x){
+  let s=0; const lim=limitPct(x.code);
+  if(x.chg!=null){
+    if(x.chg>=lim-0.5) s+=60;                       // 涨停顶格
+    s+=Math.min(Math.max(x.chg,0),20)*0.5;           // 涨幅贡献，封顶 +10
+  }
+  if(x.vb!=null&&x.vb>=3) s+=8;                      // 放量突破
+  if(x.turn!=null&&x.turn>=10) s+=5;                 // 高换手
+  if(x.chg!=null&&x.chg<0) s-=5;                     // 回调减分
+  return Math.round(s*10)/10;
+}
+function renderPoolOpps(){
+  const el=$('poolOpps'); if(!el) return;
+  const codes=poolCodes();
+  const held=new Set(myHold().map(h=>h.code));
+  const watched=new Set(myWatch().map(w=>w.code));
+  const list=codes.map(code=>{
+    const q=poolQuotes[code]; if(!q) return null;
+    const name=(q[1])||codeName(code)||code;
+    const price=(q[3]&&q[3]!=='0')?parseFloat(q[3]):null;
+    const chg=(q[32]!=null&&q[32]!=='')?parseFloat(q[32]):null;
+    const vb=(q[46]!=null&&q[46]!=='')?parseFloat(q[46]):null;
+    const turn=(q[37]!=null&&q[37]!=='')?parseFloat(q[37]):null;
+    const mcap=(q[45]!=null&&q[45]!=='')?parseFloat(q[45]):null;
+    return {code,name,price,chg,vb,turn,mcap,
+      score:livePoolScore({code,chg,vb,turn}),
+      tags:livePoolTags({code,chg,vb,turn})};
+  }).filter(Boolean);
+  if(!list.length){ el.innerHTML='<div class="empty">暂无实时行情——点「🔄 刷新实时行情」或等待 90 秒自动拉取持仓/自选股实时异动</div>'; return; }
+  list.sort((a,b)=> b.score-a.score);
+  el.innerHTML=list.map(o=>{
+    const col=o.chg==null?'':(o.chg>=0?'up':'down');
+    const link = held.has(o.code)?`<span class="tag" style="color:#fff;background:#d43d3d;border-color:#d43d3d;margin-left:6px">已持有</span>`
+      : watched.has(o.code)?`<span class="tag" style="color:var(--brand);border-color:var(--brand);margin-left:6px">已在自选</span>`:'';
+    // 实时徽章（原 poolLive 的异动/状态标记）
+    let badge='';
+    if(o.chg!=null){ if(o.chg>=9.5)badge+='<span class="badge zt">涨停</span>'; else if(o.chg>=5)badge+='<span class="badge surge">异动</span>'; else if(o.chg<=-3)badge+='<span class="badge dn">弱势</span>'; }
+    if(o.vb!=null&&o.vb>=3)badge+='<span class="badge vol">放量</span>';
+    let reason;
+    if(o.chg==null) reason='行情获取中…';
+    else {
+      const lim=limitPct(o.code);
+      if(o.chg>=lim-0.5) reason=`强势封板（涨 ${o.chg}% 触及 ${lim}% 涨停线），今日最强信号`;
+      else if(o.chg>=5) reason=`日内异动拉升 +${o.chg}%，资金关注度提升`;
+      else if(o.chg>=0) reason=`当前 +${o.chg}% · 量比 ${o.vb!=null?o.vb:'—'} · 换手 ${o.turn!=null?o.turn:'—'}%`;
+      else reason=`回调 ${o.chg}% · 量比 ${o.vb!=null?o.vb:'—'} · 换手 ${o.turn!=null?o.turn:'—'}%（关注低吸机会）`;
+    }
+    const sc=`<div style="margin-top:8px"><div class="score"><em>强度</em><div class="bar"><i style="width:${Math.min(o.score,80)}%"></i></div><u>${o.score}</u></div></div>`;
+    const meta=(o.price!=null||o.mcap!=null)?`<div style="margin-top:8px;font-size:12px;color:var(--sub)">现价 ${o.price!=null?o.price:'—'}${o.mcap!=null?` · 市值 ${(o.mcap/1e8).toFixed(1)}亿`:''}</div>`:'';
+    const signals = badge + ((o.tags&&o.tags.length)?o.tags.map(t=>`<span>${t}</span>`).join(''):'<span class="stamp">—</span>');
+    return `<div class="card opp"><div><span class="nm">${o.name}</span><span class="code">${o.code}</span>${link}${o.chg!=null?`<span class="${col}" style="float:right;font-weight:700">${o.chg>=0?'+':''}${o.chg}%</span>`:''}</div>
+    <div class="reason">${reason}</div>${sc}${meta}
+    <div class="signals">${signals}</div></div>`;
+  }).join('');
+}
+function renderStaticOpps(){
+  const el=$('poolStatic'); if(!el) return;
+  const s=(window.WB_DATA||{}).stock||{};
+  const opps=s.opportunities||[];
+  if(!opps.length){ el.innerHTML='<div class="empty">暂无盘前机会数据（每日盘前由自动化研判写入）</div>'; return; }
+  el.innerHTML=opps.map(o=>{
+    const col=(o.changePct!=null && o.changePct>=0)?'up':'down';
+    const scoreAvg=o.score?Math.round((o.score.tech+o.score.fund+o.score.news)/3):0;
+    return `<div class="card opp"><div><span class="nm">${o.name}</span><span class="code">${o.code}</span>`
+      + `<span class="tag" style="margin-left:6px;background:#f3e9fb;color:#8b3fd1;border-color:#e5d4f5">盘前</span>`
+      + (o.changePct!=null?`<span class="${col}" style="float:right;font-weight:700">${o.changePct>=0?'+':''}${o.changePct}%</span>`:'')
+      + `</div><div class="reason">${o.reason||''}</div>`
+      + (o.price!=null?`<div style="margin-top:6px;font-size:12px;color:var(--sub)">参考价 ¥${o.price}</div>`:'')
+      + `<div class="signals">${o.tags?o.tags.map(t=>`<span class="badge opp">${t}</span>`).join(''):''}`
+      + (o.position?`<span class="badge vol">${o.position}</span>`:'')+(o.stop?`<span class="badge dn">止损：${o.stop}</span>`:'')+`</div>`
+      + (o.score?`<div class="score" style="margin-top:8px"><em>综合</em><div class="bar"><i style="width:${Math.min(scoreAvg,100)}%"></i></div><u>${scoreAvg}</u></div>`:'')
+      + `</div>`;
+  }).join('');
+}
+function renderOppSection(){ renderStaticOpps(); renderPoolOpps(); }
+/* —— 我的股票池：实时行情(JSONP·腾讯) + 异动徽章 —— */
+function poolCodes(){
+  const D=window.WB_DATA||{}; const s=D.stock||{};
+  const codes=new Set();
+  effHold().forEach(e=>e.h.code&&codes.add(e.h.code));
+  allWatch().forEach(w=>w.code&&codes.add(w.code));
+  return [...codes];
+}
+function txPrefix(code){ if(/^6/.test(code))return 'sh'+code; if(/^(0|3)/.test(code))return 'sz'+code; if(/^(8|4)/.test(code))return 'bj'+code; return 'sh'+code; }
+function txJsonp(codes){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://qt.gtimg.cn/q='+codes.map(txPrefix).join(',');
+    let done=false;
+    s.onload=()=>{ if(done)return; done=true; const out={}; codes.forEach(c=>{ const v=window['v_'+txPrefix(c)]; if(v) out[c]=v.split('~'); }); res(out); s.remove(); };
+    s.onerror=()=>{ if(done)return; done=true; rej(new Error('net')); s.remove(); };
+    document.body.appendChild(s);
+    setTimeout(()=>{ if(!done){done=true; rej(new Error('timeout')); s.remove();} },12000);
+  });
+}
+function refreshPool(){
+  const codes=poolCodes();
+  if(!codes.length){ $('poolOpps').innerHTML='<div class="empty">暂无持仓/自选股</div>'; return; }
+  $('poolStamp').textContent='行情加载中…';
+  txJsonp(codes).then(q=>{
+      poolQuotes=q; renderStaticOpps(); renderPoolOpps();
+      // 顺带把持仓现价/盈亏与自选价格一起刷新
+      const arr=myHold(); let n=0;
+      arr.forEach(h=>{ const v=q[h.code]; if(v&&v[3]&&parseFloat(v[3])>0){ h.price=parseFloat(v[3]); calcPnl(h); if(v[32]!=null&&v[32]!=='') h.dayChg=parseFloat(v[32]); n++; } });
+      if(n){ setHold(arr); renderHold(); if($('holdStamp')) $('holdStamp').textContent=`已更新 ${n} 只 · ${new Date().toLocaleTimeString('zh-CN')}`; }
+      renderWatch();
+      $('poolStamp').textContent='实时行情 · '+new Date().toLocaleTimeString('zh-CN');
+      if($('oppDate'))$('oppDate').textContent='实时行情 · '+new Date().toLocaleDateString('zh-CN');
+    })
+    .catch(()=>{ $('poolStamp').textContent='实时行情获取失败（网络受限），显示最后数据'; renderStaticOpps(); renderPoolOpps(); });
+}
+/* 自动刷新：打开页面自动拉一次行情；后台每90秒轮询（仅页面可见时）；切回标签页也刷新（声明已提到脚本顶部） */
+function maybeRefreshScreen(){ if(screenAll.length && watchMode==='screen' && $('wlScreenPane') && $('wlScreenPane').style.display!=='none') refreshWatchScreen({reuseQuotes:true}); }
+function _onVisible(){ if(document.visibilityState!=='visible' || !autoRefreshOn) return; refreshPool(); maybeRefreshScreen(); refreshSectors(); }
+/* —— 盘中实时热点板块（纯腾讯行情）：腾讯 qt.gtimg.cn 不提供板块排行接口，
+   故以各行业/概念代表性龙头股的实时涨跌幅近似板块热度，按涨幅排序 Top 10 ——
+   SECTOR_PROXIES：每个主流板块选 1 只高代表性、流动性好的 A 股龙头作为代理 */
+const SECTOR_PROXIES = [
+  {name:'银行', code:'601398'}, {name:'证券', code:'600030'}, {name:'保险', code:'601318'},
+  {name:'地产', code:'600048'}, {name:'建筑', code:'601668'}, {name:'煤炭', code:'601088'},
+  {name:'石油', code:'601857'}, {name:'有色', code:'600362'}, {name:'稀土', code:'600111'},
+  {name:'钢铁', code:'600019'}, {name:'电力', code:'600900'}, {name:'化工', code:'600989'},
+  {name:'建材', code:'600585'}, {name:'机械', code:'600031'}, {name:'汽车', code:'002594'},
+  {name:'锂电', code:'002460'}, {name:'光伏', code:'600438'}, {name:'半导体', code:'688981'},
+  {name:'元器件', code:'002475'}, {name:'通信', code:'000063'}, {name:'医药', code:'300760'},
+  {name:'生物制药', code:'600276'}, {name:'白酒', code:'600519'}, {name:'家电', code:'000333'},
+  {name:'传媒', code:'002027'}, {name:'软件', code:'300496'}, {name:'消费电子', code:'002241'},
+  {name:'面板', code:'000725'}, {name:'军工', code:'600760'}, {name:'船舶', code:'600150'},
+  {name:'航空', code:'601111'}, {name:'物流', code:'002352'}, {name:'农林牧渔', code:'002714'},
+  {name:'旅游', code:'601888'}, {name:'游戏', code:'002555'}, {name:'人工智能', code:'002230'},
+  {name:'云计算', code:'000977'}, {name:'芯片', code:'603501'}, {name:'5G', code:'600050'},
+  {name:'网络安全', code:'002212'}, {name:'食品饮料', code:'600887'}, {name:'新能源', code:'601012'}
+];
+function sectorsFallback(){
+  const s=(window.WB_DATA||{}).stock||{};
+  const hot=(s.market&&s.market.hotSectors)||s.hotSectors||[];
+  const el=$('sectors');
+  if(el) el.innerHTML = hot.length? hot.map(x=>`<span class="sect-chip">${x}</span>`).join('') : '<div class="empty">板块实时行情获取失败（网络受限）</div>';
+  const t=$('sectTag'); if(t) t.textContent='盘前快照';
+}
+function refreshSectors(){
+  const el=$('sectors'); if(el) el.innerHTML='<div class="empty">板块实时行情加载中…</div>';
+  const codes=SECTOR_PROXIES.map(x=>x.code);
+  const B=20, batches=[];
+  for(let i=0;i<codes.length;i+=B) batches.push(codes.slice(i,i+B));
+  Promise.all(batches.map(b=>txJsonp(b).catch(()=>({}))))
+    .then(results=>{
+      const q=Object.assign({}, ...results);
+      const list=SECTOR_PROXIES.map(p=>{
+        const v=q[p.code];
+        const chg=(v&&v[32]!=null&&v[32]!=='')?parseFloat(v[32]):null;
+        return {name:p.name, code:p.code, chg};
+      }).filter(x=>x.chg!=null)
+        .sort((a,b)=>b.chg-a.chg)
+        .slice(0,10);
+      if(!list.length){ sectorsFallback(); return; }   // 实时全空（网络失败/全无数据）→ 回退盘前快照
+      renderSectors(list);
+    })
+    .catch(()=>{ sectorsFallback(); });
+}
+function renderSectors(list){
+  const el=$('sectors'); if(!el) return;
+  if(!list||!list.length){ if(el) el.innerHTML='<div class="empty">暂无板块行情</div>'; return; }
+  el.innerHTML=list.map(x=>{
+    const col=x.chg>=0?'up':'down';
+    const strong = x.chg>=3 ? ' style="border-color:#d43d3d;color:#d43d3d"' : (x.chg<0?' style="border-color:#1a9e54;color:#1a9e54"':'');
+    return `<span class="sect-chip"${strong}><b>${x.name}</b> <span class="${col}">${x.chg>=0?'+':''}${x.chg}%</span></span>`;
+  }).join('');
+  const t=$('sectTag'); if(t) t.textContent='实时(腾讯) · '+new Date().toLocaleTimeString('zh-CN');
+}
+
+function startAutoRefresh(){
+  if(_autoTimer) clearInterval(_autoTimer);
+  _autoTimer=setInterval(()=>{ if(!autoRefreshOn || document.visibilityState!=='visible') return; refreshPool(); maybeRefreshScreen(); refreshSectors(); }, AUTO_INTERVAL);
+  document.removeEventListener('visibilitychange', _onVisible);
+  document.addEventListener('visibilitychange', _onVisible);
+}
+function toggleAutoRefresh(){
+  autoRefreshOn=!autoRefreshOn;
+  const b=$('autoBtn'); if(b) b.textContent='⏱ 自动刷新：'+(autoRefreshOn?'开':'关');
+  if(autoRefreshOn){ startAutoRefresh(); refreshPool(); maybeRefreshScreen(); refreshSectors(); }
+  else if(_autoTimer){ clearInterval(_autoTimer); _autoTimer=null; }
+}
+/* —— 全市场扫描(备用函数：东财排行+腾讯K线；当前选股区改用 refreshWatchScreen 走自选+持仓) —— */
+let screenAll=[], curStrategy='all', screenTech={}, watchMode='list';
+function emJsonp(url){
+  return new Promise((res,rej)=>{
+    const name='emcb'+Date.now()+Math.floor(Math.random()*1e4);
+    window[name]=function(d){ res(d); cleanup(); };
+    const s=document.createElement('script');
+    s.src=url+(url.indexOf('?')>-1?'&':'?')+'cb='+name;
+    s.onerror=()=>{ rej(new Error('net')); cleanup(); };
+    function cleanup(){ try{delete window[name];}catch(e){} s.remove(); }
+    document.body.appendChild(s);
+    setTimeout(()=>{ rej(new Error('timeout')); cleanup(); },13000);
+  });
+}
+/* 腾讯日K线(JSONP·前复权)，返回最近 days 根日线 */
+function qfqKline(code,days){
+  return new Promise((res)=>{
+    const px=txPrefix(code), key=px+code, cb='kcb'+Date.now()+Math.floor(Math.random()*1e4);
+    const s=document.createElement('script');
+    window[cb]=function(d){
+      try{ const node=(d&&d.data&&(d.data[key]||d.data[code]))||{}; const arr=node.qfqday||node.day||[]; res(arr.slice(-days)); }
+      catch(e){ res([]); }
+      cleanup();
+    };
+    s.src=`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=${key},day,,,${days},qfq&cb=${cb}`;
+    s.onerror=()=>{ cleanup(); res([]); };
+    function cleanup(){ try{delete window[cb];}catch(e){} s.remove(); }
+    document.body.appendChild(s);
+    setTimeout(()=>{ cleanup(); res([]); },12000);
+  });
+}
+/* 批量补技术面：每批6只并发，实时回传进度；单只失败不影响整体 */
+async function enrichScreenTech(onProg){
+  const codes=screenAll.map(x=>x.code); const B=10;   // 并发 6→10，总耗时约减半
+  for(let i=0;i<codes.length;i+=B){
+    const batch=codes.slice(i,i+B);
+    await Promise.all(batch.map(async code=>{
+      try{ const bars=await qfqKline(code,60); screenTech[code]=computeTech(bars,code); }
+      catch(e){ screenTech[code]={enough:false}; }
+    }));
+    if(onProg) onProg(Math.min(i+B,codes.length),codes.length);
+  }
+}
+async function refreshScreen(){
+  $('screenList').innerHTML='<div class="empty">全市场扫描中…（备用，拉取东财排行）</div>';
+  const url='https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=120&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f12,f14,f2,f3,f10,f8,f9,f20,f62,f184,f104,f105';
+  emJsonp(url).then(async d=>{
+    const diff=(d&&d.data&&d.data.diff)||[];
+    screenAll=diff.map(a=>({code:a[0],name:a[1],price:a[2],chg:toNum(a[3]),vb:toNum(a[4]),turn:toNum(a[5]),pe:toNum(a[6]),mcap:toNum(a[7]),main:toNum(a[8]),mainp:toNum(a[9]),w5:toNum(a[10]),w10:toNum(a[11])})).filter(x=>x.code);
+    screenTech={};
+    $('screenList').innerHTML='<div class="empty">技术面计算中… (0/'+screenAll.length+')</div>';
+    await enrichScreenTech((done,total)=>{ $('screenList').innerHTML='<div class="empty">技术面计算中… ('+done+'/'+total+')</div>'; });
+    screenAll.sort((a,b)=>strength(b)-strength(a));   // 全部视图按强度分排序，最该看的顶到前面
+    renderScreen();
+  }).catch(()=>{ $('screenList').innerHTML='<div class="empty">实时筛选失败（网络受限或接口限流）；交易时段重试，或让我用选股工具跑一遍写入数据中枢</div>'; });
+}
+/* —— 自选+持仓策略选股(纯腾讯接口，不依赖东财全市场，公网部署更稳定) ——
+   数据源 = 我的自选(wb_watch) + 持仓(wb_hold)，合并去重；
+   行情走 qt.gtimg.cn JSONP，技术面走 web.ifzq 前复权日K线 + computeTech；
+   reuseQuotes=true 复用 refreshPool 已拉行情并保留日级技术面缓存，仅重排(自动刷新极轻)。 */
+async function refreshWatchScreen(opts){
+  opts=opts||{};
+  const watch=(myWatch()||[]).map(w=>({name:w.name,code:w.code}));
+  const hold=(myHold()||[]).map(h=>({name:h.name,code:h.code}));
+  const seen={}, codes=[];
+  hold.concat(watch).forEach(x=>{ if(x&&x.code&&!seen[x.code]){ seen[x.code]=1; codes.push(x.code); } });
+  if(!codes.length){ $('screenList').innerHTML='<div class="empty">自选与持仓都为空，先去「持仓」或「自选股监控」加几只</div>'; return; }
+  let q;
+  if(opts.reuseQuotes){ q=poolQuotes; }
+  else {
+    $('screenList').innerHTML='<div class="empty">拉取实时行情…</div>';
+    try{ q=await txJsonp(codes); }catch(e){ $('screenList').innerHTML='<div class="empty">实时行情获取失败（网络受限）</div>'; return; }
+    poolQuotes=Object.assign({},poolQuotes,q);
+  }
+  screenAll=codes.map(code=>{
+    const v=q[code]; const nm=(v&&v[1])||codeName(code)||code;
+    return { code, name:nm,
+      price: v&&v[3]&&v[3]!=='0'?parseFloat(v[3]):null,
+      chg:  v&&v[32]!=null&&v[32]!==''?parseFloat(v[32]):null,
+      vb:   v&&v[46]!=null&&v[46]!==''?parseFloat(v[46]):null,
+      turn: v&&v[37]!=null&&v[37]!==''?parseFloat(v[37]):null,
+      mcap: v&&v[45]?parseFloat(v[45]):null,
+      main: null };
+  });
+  const needTech = !opts.reuseQuotes || codes.some(c=>!screenTech[c]);
+  if(needTech){
+    screenTech={};
+    $('screenList').innerHTML='<div class="empty">技术面计算中…(0/'+screenAll.length+')</div>';
+    await enrichScreenTech((d,t)=>{ $('screenList').innerHTML='<div class="empty">技术面计算中…('+d+'/'+t+')</div>'; });
+  }
+  screenAll.sort((a,b)=>strength(b)-strength(a));
+  renderScreen();
+}
+
+function toNum(v){ if(v==null||v==='-')return null; const n=parseFloat(v); return isNaN(n)?null:n; }
+/* 各板块涨停幅度不同：主板10% / 创业板·科创板20% / 北交所30%（ST取9.5保守） */
+function limitPct(code){
+  if(/^(688|300|301|302)/.test(code)) return 19.5;
+  if(/^(8|4)/.test(code)) return 29.5;
+  return 9.5;
+}
+/* 指数平滑均线 */
+function emaArr(arr,n){
+  if(!arr.length) return [];
+  const k=2/(n+1); const out=[arr[0]]; let p=arr[0];
+  for(let i=1;i<arr.length;i++){ p=arr[i]*k+p*(1-k); out.push(p); }
+  return out;
+}
+/* 由日K线真实计算：MA5/10/20/30 多头排列、MACD金叉、连板数 */
+function computeTech(bars,code){
+  if(!bars||bars.length<30) return {enough:false};
+  const c=bars.map(b=>parseFloat(b[2])); const n=c.length;
+  const ma=m=>c.slice(n-m).reduce((a,b)=>a+b,0)/m;
+  const ma5=ma(5),ma10=ma(10),ma20=ma(20),ma30=ma(30);
+  const e12=emaArr(c,12),e26=emaArr(c,26);
+  const dif=c.map((_,i)=>e12[i]-e26[i]);
+  const dea=emaArr(dif,9);
+  const goldenCross = dif[n-1]>dea[n-1] && dif[n-2]<=dea[n-2];
+  const multiMA = ma5>ma10 && ma10>ma20;       // 均线生命线：5>10>20 多头排列
+  const lim=limitPct(code); let lb=0;            // 连板：连续涨停且封板(收=最高)
+  for(let i=n-1;i>=0;i--){
+    const pct=parseFloat(bars[i][8]); const cl=parseFloat(bars[i][2]); const hi=parseFloat(bars[i][3]);
+    if(pct>=lim-0.5 && cl===hi) lb++; else break;
+  }
+  return {enough:true,ma5,ma10,ma20,ma30,goldenCross,multiMA,lianban:lb,limit:lim};
+}
+function stratOf(x){
+  const t=[];
+  const lim=limitPct(x.code);
+  if(x.chg!=null&&x.chg>=lim-0.5)t.push('zt');
+  else if(x.chg!=null&&x.chg>=5&&x.chg<lim-0.5)t.push('strong');
+  if(x.vb!=null&&x.vb>=3&&x.chg>0)t.push('vol');
+  if(x.main!=null&&x.main>1e8)t.push('main');
+  if(x.price!=null&&x.price<12&&x.mcap!=null&&x.mcap<8e10)t.push('low');
+  const tech=screenTech[x.code];
+  if(tech&&tech.enough){
+    if(tech.goldenCross)t.push('macd');   // 真金叉：DIF 上穿 DEA
+    if(tech.multiMA)t.push('ma');          // 均线多头排列
+    if(tech.lianban>=2)t.push('lb');       // 二板及以上
+  }
+  return t;
+}
+const STRAT_NAME={zt:'涨停',strong:'强势',vol:'放量突破',macd:'MACD金叉',main:'主力净流入',low:'低价小盘',ma:'均线多头',lb:'连板'};
+/* 强度分：把"该看不该看"量化，让"全部"按可操作性而非单纯涨幅排序 */
+function strength(x){
+  let s=0; const tech=screenTech[x.code]; const t=stratOf(x);
+  if(t.includes('zt')) s+=60;
+  if(tech&&tech.enough){
+    if(tech.lianban>=2) s+=tech.lianban*15;   // 连板越多越靠前
+    if(tech.goldenCross) s+=20;                 // 真金叉
+    if(tech.multiMA) s+=15;                     // 均线多头
+  }
+  if(t.includes('main')) s+=12;                 // 主力净流入
+  if(t.includes('vol')) s+=8;                    // 放量突破
+  if(x.chg!=null) s+=Math.min(Math.max(x.chg,0),20)*0.5;  // 涨幅贡献，封顶
+  return Math.round(s*10)/10;
+}
+function renderScreen(){
+  let list=screenAll.slice();
+  if(curStrategy!=='all') list=list.filter(x=>(stratOf(x).includes(curStrategy)));
+  const N=curStrategy==='all'?40:25;
+  list=list.slice(0,N);
+  if(!list.length){ $('screenList').innerHTML='<div class="empty">当前策略下暂无匹配个股（可换策略或刷新）</div>'; return; }
+  $('screenList').innerHTML=list.map(x=>{
+    const col=x.chg>=0?'up':'down';
+    const held=isHold(x.code), watched=(myWatch()||[]).some(w=>w.code===x.code);
+    const ownTag=held?`<span class="tag" style="color:#fff;background:#d43d3d;border-color:#d43d3d;margin-left:6px">已持仓</span>`:watched?`<span class="tag" style="color:var(--brand);border-color:var(--brand);margin-left:6px">已在自选</span>`:'';
+    const st=stratOf(x).map(s=>`<span class="badge ${s}">${STRAT_NAME[s]}</span>`).join(' ');
+    const main=x.main==null?'—':(x.main/1e8).toFixed(2)+'亿';
+    const tech=screenTech[x.code];
+    const maLine=(tech&&tech.enough)?` · MA5 ${tech.ma5.toFixed(2)}`:'';
+    return `<div class="card opp"><div><span class="nm">${x.name}</span><span class="code">${x.code}</span>${ownTag}${x.chg!=null?`<span class="${col}" style="float:right;font-weight:700">${x.chg>=0?'+':''}${x.chg}%</span>`:''}</div>
+    <div class="reason" style="color:var(--sub);font-size:12px">现价 ${x.price??'—'} · 量比 ${x.vb??'—'} · 换手 ${x.turn??'—'}% · 主净 ${main}${maLine} · 强度 ${strength(x)}</div>
+    <div class="signals">${st||'<span class="stamp">—</span>'}<button class="btn sm ghost" style="margin-left:6px" onclick="addWatchBy('${x.name}','${x.code}')">+自选</button></div></div>`;
+  }).join('');
+}
+function selStrategy(st){
+  curStrategy=st;
+  document.querySelectorAll('#wlScreenPane .chip').forEach(c=>c.classList.toggle('active', c.getAttribute('data-st')===st));
+  renderScreen();
+}
+function setWatchMode(mode){
+  watchMode=mode;
+  const lp=document.getElementById('wlListPane'), sp=document.getElementById('wlScreenPane');
+  if(lp) lp.style.display = mode==='list'?'':'none';
+  if(sp) sp.style.display = mode==='screen'?'':'none';
+  document.querySelectorAll('#wlModeTabs .tab').forEach(t=>t.classList.toggle('active', t.textContent.indexOf(mode==='list'?'监控列表':'策略选股')>-1));
+  if(mode==='screen' && !screenAll.length) refreshWatchScreen();
+}
+function addWatchBy(name,code){ const r=doAddWatch(name,code); alert(r.msg); }
+
+/* ---------- 持仓：可重渲染 + 自助增删 / 减仓 / 删除 ---------- */
+/* ============================================================
+   股票清单 = 你的数据（wb_hold / wb_watch），完全可增删改
+   data.js 的 holdings/watchlist 只在首次进入时灌一次种子，之后不再参与
+   ============================================================ */
+function seedStocks(){
+  if(LS.get('wb_seeded', false)) return;
+  const s=(window.WB_DATA||{}).stock||{};
+  // 种子 = data.js 底池；并合并用户在旧版本里已做过的增删改，避免丢数据
+  const oldDel=LS.get('wb_hold_del',[]), oldAdj=LS.get('wb_hold_adj',{}), oldCus=LS.get('wb_hold_custom',[]);
+  let hold=(s.holdings||[]).filter(h=>oldDel.indexOf(h.code)<0).map(h=>{
+    const a=oldAdj[h.code]; const nh=Object.assign({},h,a||{});
+    if(nh.price!=null&&nh.cost!=null) nh.pnlPct=Math.round((nh.price-nh.cost)/nh.cost*100*100)/100;
+    return nh;
+  }).concat(oldCus);
+  const wDel=LS.get('wb_watch_del',[]), wCus=LS.get('wb_watch_custom',[]);
+  let watch=(s.watchlist||[]).filter(w=>wDel.indexOf(w.code)<0).concat(wCus);
+  // 去重（按代码）
+  const uniq=a=>{const m={};return a.filter(x=>x&&x.code&&!m[x.code]&&(m[x.code]=1));};
+  LS.set('wb_hold', uniq(hold));
+  LS.set('wb_watch', uniq(watch).map(w=>({name:w.name,code:w.code})));
+  LS.set('wb_seeded', true);
+  LS.set('wb_hold_seed_ver', ((window.WB_DATA||{}).stock||{}).holdSeedVersion || 1);
+  LS.set('wb_watch_seed_ver', ((window.WB_DATA||{}).stock||{}).watchSeedVersion || 1);
+}
+/* 自选股种子增量同步：data.js 里 watchSeedVersion 变大时，把新增的股票合并进你的自选。
+   只追加不删除——你自己删掉的、加过的都不受影响；同一代码已存在则跳过。 */
+function syncWatchSeed(){
+  const s=(window.WB_DATA||{}).stock||{};
+  const ver = s.watchSeedVersion || 1;
+  const localVer = LS.get('wb_watch_seed_ver', 1);
+  if(ver <= localVer) return 0;
+  const mine = myWatch();
+  const have = {}; mine.forEach(w=>{ if(w&&w.code) have[w.code]=1; });
+  let added=0;
+  (s.watchlist||[]).forEach(w=>{
+    if(!w||!w.code||have[w.code]) return;
+    mine.push({name:w.name||w.code, code:w.code}); have[w.code]=1; added++;
+  });
+  if(added) setWatch(mine);
+  LS.set('wb_watch_seed_ver', ver);
+  return added;
+}
+/* 持仓种子同步：data.js 里 holdSeedVersion 变大时，用最新截图持仓完全替换本地持仓。
+   适合券商App整仓截图更新；你在工作台内临时做的减仓/增删会被新版本覆盖，
+   如需保留请先用「导出JSON」备份。 */
+function syncHoldSeed(){
+  const s=(window.WB_DATA||{}).stock||{};
+  const ver = s.holdSeedVersion || 1;
+  const localVer = LS.get('wb_hold_seed_ver', 1);
+  if(ver <= localVer) return 0;
+  const hold=(s.holdings||[]).map(h=>{
+    const nh=Object.assign({},h);
+    if(nh.price!=null&&nh.cost!=null) nh.pnlPct=Math.round((nh.price-nh.cost)/nh.cost*100*100)/100;
+    return nh;
+  });
+  setHold(hold);
+  LS.set('wb_hold_seed_ver', ver);
+  return hold.length;
+}
+function myHold(){ return LS.get('wb_hold', []); }
+function setHold(a){ LS.set('wb_hold', a); }
+function myWatch(){ return LS.get('wb_watch', []); }
+function setWatch(a){ LS.set('wb_watch', a); }
+/* 兼容旧调用：统一返回 {h, idx} 形态 */
+function effHold(){ return myHold().map((h,i)=>({h, src:'my', idx:i})); }
+function getCustomHold(){ return myHold(); }
+function getCustomWatch(){ return myWatch(); }
+function codeName(code){
+  const f=myHold().find(h=>h.code===code)||myWatch().find(w=>w.code===code);
+  if(f) return f.name;
+  const s=(window.WB_DATA||{}).stock||{};
+  const g=(s.holdings||[]).find(h=>h.code===code)||(s.watchlist||[]).find(w=>w.code===code)||(s.opportunities||[]).find(o=>o.code===code);
+  return g?g.name:code;
+}
+function isHold(code){ return myHold().some(h=>h.code===code); }
+function renderHold(){
+  const D = window.WB_DATA||{};
+  const s = D.stock||{};
+  const mk = s.market||{};
+  const opps = s.opportunities||[];
+  const alerts = s.alerts||[];
+  const hd = myHold();
+  const rowOf = (h, i) => {
+    const pc = h.pnlPct==null?'':(h.pnlPct>=0?'up':'down');
+    const val = (h.price!=null&&h.shares)?h.price*h.shares:null;
+    const amt = (h.price!=null&&h.cost!=null&&h.shares)?(h.price-h.cost)*h.shares:null;
+    const btns = `<button class="btn sm ghost" onclick="editHold(${i})">改</button> <button class="btn sm ghost" onclick="reduceHold(${i})">减仓</button> <button class="btn sm ghost" onclick="delHoldStock(${i})">删</button>`;
+    const dc = (h.dayChg==null||isNaN(h.dayChg))?'<span style="color:var(--sub)">—</span>':`<span class="${h.dayChg>=0?'up':'down'}" style="font-weight:600">${h.dayChg>=0?'+':''}${h.dayChg}%</span>`;
+    return `<tr><td><b>${h.name}</b></td><td>${h.code}</td><td>${h.cost??'—'}</td><td>${h.price??'—'}</td><td>${dc}</td><td>${h.shares??'—'}</td><td>${val==null?'—':'¥'+val.toLocaleString('zh-CN',{maximumFractionDigits:0})}</td><td class="${pc}" style="font-weight:700">${h.pnlPct==null?'—':(h.pnlPct>=0?'+':'')+h.pnlPct+'%'}</td><td class="${pc}">${amt==null?'—':(amt>=0?'+':'-')+'¥'+Math.abs(amt).toLocaleString('zh-CN',{maximumFractionDigits:0})}</td><td style="color:var(--sub)">${h.note||''}</td><td style="white-space:nowrap">${btns}</td></tr>`;
+  };
+  const order = hd.map((h,i)=>({h,i})).sort((a,b)=>(a.h.pnlPct??0)-(b.h.pnlPct??0));
+  $('holdings').innerHTML = order.map(o=>rowOf(o.h,o.i)).join('')
+    ||'<tr><td colspan="11" style="color:var(--sub)">持仓为空 · 用下方表单添加，或点「恢复初始清单」导回参考持仓</td></tr>';
+  const mv = hd.reduce((a,h)=>a+(h.price&&h.shares?h.price*h.shares:0),0);
+  const win = hd.filter(h=>h.pnlPct>0).length, lose = hd.filter(h=>h.pnlPct<0).length;
+  const worst = hd.filter(h=>h.pnlPct!=null).sort((a,b)=>a.pnlPct-b.pnlPct)[0];
+  const totalPnl = hd.reduce((a,h)=>a+((h.price!=null&&h.cost!=null&&h.shares)?(h.price-h.cost)*h.shares:0),0);
+  $('holdTotal').textContent = (mv?`总市值约 ¥${mv.toLocaleString('zh-CN',{maximumFractionDigits:0})} · `:'')+`盈 ${win} / 亏 ${lose}`+(worst&&worst.pnlPct<0?` · 最弱：${worst.name} ${worst.pnlPct}%`:'')+` · 共 ${hd.length} 只`;
+  $('dsNote').textContent = '持仓清单由你自己维护，随时增删改；行情价格点「🔄 刷新行情」实时拉取。';
+  const moodTxt = mk.mood||(mk.advance?(mk.advance.up>=mk.advance.down?'偏强':'偏弱'):'—');
+  $('kpis').innerHTML = [
+    {l:'今日机会', v:opps.length, c:''},
+    {l:'预警信号', v:alerts.length, c:alerts.length?'var(--red)':''},
+    {l:'大盘强弱', v:moodTxt, c:''},
+    {l:'持仓净盈亏', v:(totalPnl>=0?'+':'')+'¥'+totalPnl.toLocaleString('zh-CN',{maximumFractionDigits:0}), c:totalPnl>=0?'var(--up)':'var(--down)'}
+  ].map(k=>`<div class="kpi"><span>${k.l}</span><b style="color:${k.c||'var(--brand)'}">${k.v}</b></div>`).join('');
+  $('acctNums').innerHTML = `总市值：<b>¥${mv.toLocaleString('zh-CN',{maximumFractionDigits:0})}</b><br>持仓净盈亏：<b style="color:${totalPnl>=0?'var(--up)':'var(--down)'}">${totalPnl>=0?'+':'-'}¥${Math.abs(totalPnl).toLocaleString('zh-CN',{maximumFractionDigits:0})}</b><br>盈利/亏损只数：${win} / ${lose}<br>胜率：<b>${win+lose?Math.round(win/(win+lose)*100):0}%</b>`;
+  /* 热点板块改由 refreshSectors() 实时驱动（盘前快照仅作实时失败时的兜底），此处不再写静态数据 */
+  if(typeof Chart!=='undefined'){
+    const upSum=hd.filter(h=>h.pnlPct>0).reduce((a,h)=>a+(h.price-h.cost)*h.shares,0);
+    const dnSum=hd.filter(h=>h.pnlPct<0).reduce((a,h)=>a+(h.price-h.cost)*h.shares,0);
+    if(chPie)chPie.destroy();
+    chPie=new Chart($('chPie'),{type:'doughnut',data:{labels:['浮盈合计','浮亏合计'],datasets:[{data:[Math.round(upSum),Math.abs(Math.round(dnSum))],backgroundColor:['#d43d3d','#1a9e54'],borderWidth:2}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+'：¥'+c.raw.toLocaleString('zh-CN')}}}}});
+  }
+  renderPos(hd);
+}
+function calcPnl(h){
+  if(h.price!=null&&h.cost) h.pnlPct=Math.round((h.price-h.cost)/h.cost*100*100)/100;
+  return h;
+}
+function addHold(){
+  const n=$('hdName').value.trim(), c=$('hdCode').value.trim();
+  const cost=parseFloat($('hdCost').value), shares=parseInt($('hdShares').value)||0;
+  const prRaw=$('hdPrice').value.trim();
+  if(!c||isNaN(cost)){ alert('代码、成本价必填'); return; }
+  if(!/^\d{6}$/.test(c)){ alert('代码需为 6 位数字'); return; }
+  const arr=myHold();
+  const exist=arr.find(h=>h.code===c);
+  const price = prRaw==='' ? null : parseFloat(prRaw);
+  if(exist){
+    // 同一只股票 = 加仓，自动算加权平均成本
+    if(!confirm(`「${exist.name}」已在持仓，是否按加权平均成本加仓 ${shares} 股？`)) return;
+    const ts=(exist.shares||0)+shares;
+    exist.cost = ts? Math.round(((exist.cost*(exist.shares||0)+cost*shares)/ts)*1000)/1000 : cost;
+    exist.shares = ts;
+    if(price!=null) exist.price=price;
+    calcPnl(exist);
+  } else {
+    arr.push(calcPnl({ name:n||c, code:c, cost:cost, shares:shares, price: price==null?cost:price, pnlPct:0, note:'' }));
+  }
+  setHold(arr);
+  $('hdName').value=''; $('hdCode').value=''; $('hdCost').value=''; $('hdShares').value=''; $('hdPrice').value='';
+  renderHold();
+  if(!n&&!exist) resolveHoldName(c);
+}
+/* 只给代码时用行情接口补全股票名 */
+function resolveHoldName(code){
+  if(typeof txJsonp!=='function') return;
+  txJsonp([code]).then(q=>{
+    const nm=q[code]&&q[code][1]; if(!nm) return;
+    const arr=myHold(), it=arr.find(h=>h.code===code);
+    if(it&&it.name===code){ it.name=nm; setHold(arr); renderHold(); }
+  }).catch(()=>{});
+}
+/* 改：成本价 / 股数 / 备注 */
+function editHold(i){
+  const arr=myHold(), h=arr[i]; if(!h) return;
+  const c=prompt(`「${h.name}」成本价`, h.cost??''); if(c===null) return;
+  const s=prompt(`「${h.name}」持仓股数`, h.shares??''); if(s===null) return;
+  const nt=prompt(`「${h.name}」备注（可留空）`, h.note||''); if(nt===null) return;
+  const cv=parseFloat(c), sv=parseInt(s);
+  if(!isNaN(cv)&&cv>0) h.cost=cv;
+  if(!isNaN(sv)&&sv>=0) h.shares=sv;
+  h.note=nt.trim();
+  calcPnl(h); setHold(arr); renderHold();
+}
+/* 减仓：卖出部分股数；输入≥当前持仓或0则清仓删除 */
+function reduceHold(i){
+  const arr=myHold(), h=arr[i]; if(!h) return;
+  const cur=h.shares||0;
+  const inp=prompt(`减仓「${h.name}」：卖出股数（当前 ${cur} 股；填 0 或 ≥${cur} = 清仓删除）`, Math.floor(cur/2));
+  if(inp===null) return;
+  const n=parseInt(inp); if(isNaN(n)||n<0) return;
+  if(n===0||n>=cur){ delHoldStock(i); return; }
+  h.shares=cur-n; calcPnl(h); setHold(arr); renderHold();
+}
+function delHoldStock(i){
+  const arr=myHold(), h=arr[i]; if(!h) return;
+  if(!confirm(`确认从持仓中删除「${h.name}」？`)) return;
+  arr.splice(i,1); setHold(arr); renderHold();
+}
+/* 刷新持仓实时行情：按代码拉现价并重算盈亏 */
+function refreshHoldQuotes(){
+  const arr=myHold(); const codes=arr.map(h=>h.code).filter(Boolean);
+  if(!codes.length){ alert('持仓为空'); return; }
+  const st=$('holdStamp'); if(st) st.textContent='行情加载中…';
+  txJsonp(codes).then(q=>{
+    let n=0;
+    arr.forEach(h=>{ const v=q[h.code]; if(v&&v[3]&&parseFloat(v[3])>0){ h.price=parseFloat(v[3]); calcPnl(h); if(v[32]!=null&&v[32]!=='') h.dayChg=parseFloat(v[32]); n++; } });
+    setHold(arr); renderHold();
+    if($('holdStamp')) $('holdStamp').textContent=`已更新 ${n}/${codes.length} 只 · ${new Date().toLocaleTimeString('zh-CN')}`;
+  }).catch(()=>{ if($('holdStamp')) $('holdStamp').textContent='行情获取失败（网络受限或非交易时段），显示上次价格'; });
+}
+/* 导出 / 导入 / 恢复初始清单 */
+function pickImage(){ const f=$('imgImportInput'); if(f) f.click(); }
+function exportJson(){
+  const payload={ exportedAt:new Date().toISOString(), holdings:myHold(), watchlist:myWatch() };
+  const txt=JSON.stringify(payload,null,2);
+  try{
+    const blob=new Blob([txt],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='我的股票_'+today()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ prompt('复制下面内容保存为备份：', txt); }
+}
+function exportImage(){
+  const hd=myHold().slice().sort((a,b)=>(a.pnlPct||0)-(b.pnlPct||0));
+  if(!hd.length){ alert('持仓为空，无内容可导出'); return; }
+  const fmt=v=>v==null?'—':(typeof v==='number'? v.toLocaleString('zh-CN',{maximumFractionDigits:2}) : v);
+  const cols=[['名称',120],['代码',90],['成本',80],['现价',80],['数量',80],['市值',110],['盈亏%',90],['盈亏额',120]];
+  const W=cols.reduce((s,c)=>s+c[1],0)+20;
+  const rowH=34, headH=44, titleH=46, pad=10;
+  const H=titleH+headH+hd.length*rowH+pad*2;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  x.fillStyle='#ffffff'; x.fillRect(0,0,W,H);
+  x.fillStyle='#2f5575'; x.fillRect(0,0,W,titleH);
+  x.fillStyle='#ffffff'; x.font='bold 18px "Microsoft YaHei",sans-serif'; x.textBaseline='middle';
+  x.fillText('我的持仓 · '+today(), pad, titleH/2);
+  x.font='bold 13px "Microsoft YaHei",sans-serif'; x.fillStyle='#6b7686'; x.textBaseline='middle';
+  let cx=pad; cols.forEach(c=>{ x.fillText(c[0], cx+6, titleH+headH/2); cx+=c[1]; });
+  hd.forEach((h,i)=>{
+    const y=titleH+headH+i*rowH;
+    if(i%2===1){ x.fillStyle='#f7f9fc'; x.fillRect(0,y,W,rowH); }
+    const val=(h.price!=null&&h.shares)?h.price*h.shares:null;
+    const amt=(h.price!=null&&h.cost!=null&&h.shares)?(h.price-h.cost)*h.shares:null;
+    const cells=[h.name, h.code, fmt(h.cost), fmt(h.price), fmt(h.shares),
+      val==null?'—':'¥'+val.toLocaleString('zh-CN',{maximumFractionDigits:0}),
+      h.pnlPct==null?'—':(h.pnlPct>=0?'+':'')+h.pnlPct+'%',
+      amt==null?'—':(amt>=0?'+':'-')+'¥'+Math.abs(amt).toLocaleString('zh-CN',{maximumFractionDigits:0})];
+    cx=pad;
+    cells.forEach((t,ci)=>{
+      if(ci===0||ci===1) x.fillStyle='#232a3a';
+      else if(ci===6||ci===7) x.fillStyle=(ci===6?(h.pnlPct||0):(amt||0))>=0?'#d43d3d':'#1a9e54';
+      else x.fillStyle='#232a3a';
+      x.font='13px "Microsoft YaHei",sans-serif'; x.textBaseline='middle';
+      x.fillText(String(t), cx+6, y+rowH/2);
+      cx+=cols[ci][1];
+    });
+    x.strokeStyle='#e6e9f4'; x.beginPath(); x.moveTo(0,y+rowH); x.lineTo(W,y+rowH); x.stroke();
+  });
+  const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='我的持仓_'+today()+'.png';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function importJson(){
+  const txt=prompt('粘贴之前导出的 JSON 内容（会覆盖当前持仓与自选）：');
+  if(!txt) return;
+  try{
+    const o=JSON.parse(txt);
+    if(!o||(!Array.isArray(o.holdings)&&!Array.isArray(o.watchlist))) throw new Error('格式不对');
+    if(Array.isArray(o.holdings)) setHold(o.holdings.map(calcPnl));
+    if(Array.isArray(o.watchlist)) setWatch(o.watchlist.map(w=>({name:w.name||w.code,code:w.code})));
+    LS.set('wb_seeded', true);
+    LS.set('wb_hold_seed_ver', ((window.WB_DATA||{}).stock||{}).holdSeedVersion || 1);
+    LS.set('wb_watch_seed_ver', ((window.WB_DATA||{}).stock||{}).watchSeedVersion || 1);
+    renderHold(); renderWatch();
+    alert(`导入成功：持仓 ${myHold().length} 只 · 自选 ${myWatch().length} 只`);
+  }catch(e){ alert('导入失败：'+e.message); }
+}
+
+/* ———— 图片 OCR 导入持仓 ———— */
+let _ocrRows=[], _ocrRaw='', _ocrFile=null, _ocrBusy=false;
+
+/* 弹窗立刻打开并显示图片——OCR 只是后台增强，成不成都不挡用户录入 */
+function handleImgImport(file){
+  if(!file) return;
+  _ocrFile=file; _ocrRaw='';
+  const url=URL.createObjectURL(file);
+  const im=$('ocrImg'); if(im) im.src=url;
+  $('ocrRawBox').style.display='none';
+  $('ocrPasteBox').style.display='none';
+  $('ocrModal').style.display='flex';
+  _ocrRows=[];
+  showOcrPreview(_ocrRows);
+  ocrBanner('info','正在后台尝试自动识别（约 10–30 秒）。识别不出也没关系——可以直接对着左图在下方手动补录，输入 6 位代码会自动补全股票名。');
+  $('ocrStatus').textContent='识别中…';
+  runOcr(file);
+}
+function ocrBanner(type,msg){
+  const b=$('ocrBanner'); if(!b) return;
+  b.className='ocr-banner '+type; b.innerHTML=msg;
+}
+function zoomOcrImg(){
+  const src=$('ocrImg')&&$('ocrImg').src; if(!src) return;
+  $('imgZoomPic').src=src; $('imgZoom').style.display='flex';
+}
+function retryOcr(){ if(_ocrFile && !_ocrBusy){ ocrBanner('info','重新尝试识别…'); $('ocrStatus').textContent='识别中…'; runOcr(_ocrFile); } }
+
+/* 按需加载 tesseract：多源竞速，任一成功即用 */
+const TESS_SRC=[
+  'https://registry.npmmirror.com/tesseract.js/4.1.4/files/dist/tesseract.min.js',
+  'https://cdn.staticfile.org/tesseract.js/4.1.4/tesseract.min.js',
+  'https://fastly.jsdelivr.net/npm/tesseract.js@4.1.4/dist/tesseract.min.js',
+  'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.4/dist/tesseract.min.js'
+];
+let _tessLoading=null;
+function loadTesseract(){
+  if(typeof Tesseract!=='undefined') return Promise.resolve(true);
+  if(_tessLoading) return _tessLoading;
+  _tessLoading=new Promise(resolve=>{
+    let done=false, pending=TESS_SRC.length;
+    const finish=ok=>{ if(!done){ done=true; resolve(ok); } };
+    TESS_SRC.forEach(src=>{
+      const s=document.createElement('script');
+      s.src=src; s.async=true;
+      s.onload=()=>{ if(typeof Tesseract!=='undefined') finish(true); else if(--pending<=0) finish(false); };
+      s.onerror=()=>{ if(--pending<=0) finish(false); };
+      document.head.appendChild(s);
+    });
+    setTimeout(()=>finish(typeof Tesseract!=='undefined'), 12000);
+  });
+  return _tessLoading;
+}
+/* 语言/引擎资源也走国内镜像；只用 eng（约4MB），中文名由代码反查补全 */
+const TESS_OPT={
+  workerPath:'https://registry.npmmirror.com/tesseract.js/4.1.4/files/dist/worker.min.js',
+  corePath:'https://registry.npmmirror.com/tesseract.js-core/4.0.4/files/',
+  langPath:'https://registry.npmmirror.com/@tesseract.js-data/eng/1.0.0/files/4.0.0_best_int'
+};
+function withTimeout(p,ms,label){
+  return Promise.race([p, new Promise((_,rej)=>setTimeout(()=>rej(new Error(label||'超时')),ms))]);
+}
+async function runOcr(file){
+  if(_ocrBusy) return;
+  _ocrBusy=true;
+  $('ocrRetryBtn').style.display='none';
+  let worker=null;
+  try{
+    const ok=await loadTesseract();
+    if(!ok || typeof Tesseract==='undefined') throw new Error('识别引擎下载失败');
+    worker=await withTimeout(Tesseract.createWorker('eng',1,TESS_OPT),30000,'引擎初始化超时');
+    // 只认数字和代码，大幅提升准确率与速度
+    try{ await worker.setParameters({tessedit_char_whitelist:'0123456789.,%-+ '}); }catch(_){}
+    const res=await withTimeout(worker.recognize(file),30000,'识别超时');
+    _ocrRaw=(res&&res.data&&res.data.text)||'';
+    const rows=parseOcrText(_ocrRaw);
+    if(!rows.length) throw new Error('图中未找到 6 位股票代码');
+    // 与用户已手动填的行合并，不覆盖
+    const exist=new Set(_ocrRows.filter(r=>r.code).map(r=>r.code));
+    rows.forEach(r=>{ if(!exist.has(r.code)) _ocrRows.push(r); });
+    showOcrPreview(_ocrRows);
+    ocrBanner('ok','已自动识别出 '+rows.length+' 只股票的代码与数字。<b>股票名和成本请对照左图核对</b>——数字识别可能有偏差。');
+    $('ocrStatus').textContent='识别到 '+rows.length+' 行';
+    resolveHoldNames();
+  }catch(e){
+    const msg=(e&&e.message)||'未知错误';
+    ocrBanner('warn','⚠ 自动识别没成功（'+msg+'）。<br>这不影响使用——<b>请对着左边的图，点「＋ 加一行」手动补录</b>：只要填 6 位代码，股票名和现价会自动补全，你只需再填成本和股数。<br>也可以把这张截图直接发到对话里，我来帮你读出来。');
+    $('ocrStatus').textContent='自动识别未成功，可手动补录';
+    $('ocrRetryBtn').style.display='';
+    if(!_ocrRows.length){ _ocrRows=[blankOcrRow()]; showOcrPreview(_ocrRows); }
+  }finally{
+    if(worker){ try{ await worker.terminate(); }catch(_){} }
+    _ocrBusy=false;
+  }
+}
+
+/* —— 手动补录 —— */
+function blankOcrRow(){ return {checked:true,name:'',code:'',cost:'',price:'',shares:'',note:'图片导入',ok:false}; }
+function addOcrRow(){ _ocrRows.push(blankOcrRow()); showOcrPreview(_ocrRows); }
+function delOcrRow(i){ _ocrRows.splice(i,1); if(!_ocrRows.length) _ocrRows=[blankOcrRow()]; showOcrPreview(_ocrRows); }
+/* 输入 6 位代码后自动补全名称与现价 */
+function autoFillByCode(i){
+  const r=_ocrRows[i]; if(!r||!/^\d{6}$/.test(r.code)) return;
+  if(typeof txJsonp!=='function') return;
+  txJsonp([r.code]).then(q=>{
+    const d=q[r.code]; if(!d) return;
+    if(!r.name) r.name=d[1]||'';
+    if(!r.price && d[3]) r.price=parseFloat(d[3])||'';
+    checkOcrRow(i); showOcrPreview(_ocrRows);
+  }).catch(()=>{});
+}
+/* —— 粘贴文本解析 —— */
+function togglePasteBox(){ const b=$('ocrPasteBox'); b.style.display=b.style.display==='none'?'block':'none'; }
+function parsePasted(){
+  const txt=$('ocrPasteTxt').value||'';
+  if(!txt.trim()){ alert('请先粘贴文本'); return; }
+  const rows=parseOcrText(txt);
+  if(!rows.length){ alert('没解析出股票——每行至少要有 6 位股票代码'); return; }
+  const exist=new Set(_ocrRows.filter(r=>r.code).map(r=>r.code));
+  rows.forEach(r=>{ if(!exist.has(r.code)) _ocrRows.push(r); });
+  _ocrRows=_ocrRows.filter(r=>r.code||r.name);
+  showOcrPreview(_ocrRows);
+  ocrBanner('ok','从粘贴文本解析出 '+rows.length+' 只股票，请核对后确认导入。');
+  $('ocrStatus').textContent='共 '+_ocrRows.length+' 行';
+  resolveHoldNames();
+}
+function parseOcrText(text){
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const rows=[];
+  lines.forEach(line=>{
+    const codes=line.match(/\b(\d{6})\b/g)||[];
+    // 保留原始字符串，以便区分整数（股数）和小数（价格）
+    const rawNums=line.match(/-?\d+\.?\d*%?/g)||[];
+    const nums=rawNums.map(s=>({v:parseFloat(s.replace('%','')), raw:s, hasDot:s.indexOf('.')>-1, hasPct:s.indexOf('%')>-1})).filter(n=>!isNaN(n.v));
+    const nameMatch=line.match(/[\u4e00-\u9fa5]{2,8}/g);
+    const name=nameMatch?nameMatch[0]:'';
+    if(!codes.length && !name) return;
+    const code=codes[0];
+    const codeVal=code?parseInt(code):null;
+    // 排除 6 位代码被误识别为数字
+    const cleanNums=nums.filter(n=>!(code && /^\d{6}$/.test(n.raw) && n.v===codeVal));
+    let cost=null, price=null, shares=null, pnlPct=null;
+    if(cleanNums.length>=1){
+      // 成本/现价：优先取前两个非百分比数字；允许第一个无小数（部分截图成本是整数）
+      const prices=[];
+      cleanNums.forEach(n=>{ if(!n.hasPct && prices.length<2) prices.push(n); });
+      if(prices[0]) cost=prices[0].v;
+      if(prices[1]) price=prices[1].v;
+      // 股数：整数、>=100、<=1000万、未被用作价格，优先选较大的
+      const used=[cost,price].filter(Boolean);
+      const intCands=cleanNums.filter(n=>!n.hasPct && !n.hasDot && n.v>=100 && n.v<=10000000 && used.indexOf(n.v)<0);
+      shares=intCands.length?intCands.sort((a,b)=>b.v-a.v)[0].v:null;
+      // 盈亏%：带 % 或范围在 -30~30 且未被使用
+      const pnlCand=cleanNums.find(n=>n.hasPct || (n.v>=-30 && n.v<=30 && used.indexOf(n.v)<0 && n.v!==shares));
+      pnlPct=pnlCand?pnlCand.v:null;
+    }
+    if(!code) return;   // 没有 6 位代码的行不要，避免噪声
+    // codeName 找不到时会回退成代码本身，这里要留空，否则接口补全不会触发
+    const known=codeName(code);
+    rows.push({
+      checked: true,
+      name: name||(known&&known!==code?known:''),
+      code: code,
+      cost: cost!=null?cost:'',
+      price: price!=null?price:'',
+      shares: shares!=null?shares:'',
+      note:'图片导入',
+      ok: true
+    });
+  });
+  return rows;
+}
+function resolveHoldNames(){
+  if(typeof txJsonp!=='function') return;
+  const need=_ocrRows.filter(r=>/^\d{6}$/.test(r.code)&&(!r.name||!r.price)).map(r=>r.code);
+  if(!need.length) return;
+  txJsonp([...new Set(need)]).then(q=>{
+    let n=0;
+    _ocrRows.forEach(r=>{
+      const v=q[r.code]; if(!v) return;
+      if(!r.name){ r.name=v[1]||r.code; n++; }
+      if(!r.price && v[3] && parseFloat(v[3])>0) r.price=parseFloat(v[3]);
+    });
+    showOcrPreview(_ocrRows);
+    if(n) $('ocrStatus').textContent='已自动补全 '+n+' 个股票名';
+  }).catch(()=>{});
+}
+function showOcrPreview(rows){
+  if(!rows.length){
+    $('ocrPreview').innerHTML='<div class="empty">还没有数据 — 点下方「＋ 加一行」对着左图补录，或等待自动识别</div>';
+    return;
+  }
+  const head='<div class="ocr-row head"><span></span><span>名称</span><span>代码</span><span>成本</span><span>现价</span><span>股数</span><span>状态</span></div>';
+  const body=rows.map((r,i)=>{
+    const st=r.ok?'<span class="stamp">可导入</span>':'<span class="bad">缺代码</span>';
+    return `<div class="ocr-row" data-i="${i}">
+      <input type="checkbox" ${r.checked?'checked':''} onchange="_ocrRows[${i}].checked=this.checked">
+      <input value="${esc(r.name)}" placeholder="自动补全" onchange="_ocrRows[${i}].name=this.value; checkOcrRow(${i})">
+      <input value="${esc(r.code)}" placeholder="6位代码" inputmode="numeric" onchange="_ocrRows[${i}].code=this.value.replace(/\\D/g,'').slice(0,6); checkOcrRow(${i}); autoFillByCode(${i})">
+      <input type="number" step="0.01" value="${r.cost}" placeholder="成本" onchange="_ocrRows[${i}].cost=parseFloat(this.value)||''">
+      <input type="number" step="0.01" value="${r.price}" placeholder="现价" onchange="_ocrRows[${i}].price=parseFloat(this.value)||''">
+      <input type="number" value="${r.shares}" placeholder="股数" onchange="_ocrRows[${i}].shares=parseInt(this.value)||''">
+      <span style="display:flex;align-items:center;gap:6px"><span id="ocrSt${i}">${st}</span><button class="btn sm ghost" style="padding:2px 7px" onclick="delOcrRow(${i})">✕</button></span>
+    </div>`;
+  }).join('');
+  $('ocrPreview').innerHTML=head+body;
+}
+function checkOcrRow(i){
+  const r=_ocrRows[i]; if(!r) return;
+  r.ok=/^\d{6}$/.test(r.code);
+  const el=$('ocrSt'+i);
+  if(el) el.innerHTML=r.ok?'<span class="stamp">可导入</span>':'<span class="bad">缺代码</span>';
+}
+function toggleOcrRaw(){ const b=$('ocrRawBox'); b.style.display=b.style.display==='none'?'block':'none'; b.textContent=_ocrRaw||'(无)'; }
+function closeOcrModal(){
+  $('ocrModal').style.display='none';
+  const im=$('ocrImg'); if(im&&im.src&&im.src.indexOf('blob:')===0){ try{URL.revokeObjectURL(im.src);}catch(_){} im.removeAttribute('src'); }
+  const fi=$('imgImportInput'); if(fi) fi.value='';
+  _ocrRows=[]; _ocrRaw=''; _ocrFile=null;
+}
+function confirmOcrImport(){
+  const picked=_ocrRows.filter(r=>r.checked && /^\d{6}$/.test(r.code));
+  if(!picked.length){ alert('请先勾选至少一行，且代码必须是 6 位数字'); return; }
+  const merged=myHold().slice();
+  picked.forEach(r=>{
+    const cost=parseFloat(r.cost)||0, price=parseFloat(r.price)||0, shares=parseInt(r.shares)||0;
+    if(!r.name) r.name=r.code;   // 名称补全失败时先用代码占位，刷新行情后会自动更新
+    const idx=merged.findIndex(h=>h.code===r.code);
+    if(idx>=0){
+      merged[idx].name=r.name;
+      if(cost) merged[idx].cost=cost;
+      if(price) merged[idx].price=price;
+      if(shares) merged[idx].shares=shares;
+      if(r.note) merged[idx].note=r.note;
+    }else{
+      merged.push({name:r.name, code:r.code, cost:cost||price||0, price:price||cost||0, shares:shares, note:r.note||'图片导入'});
+    }
+  });
+  setHold(merged.map(calcPnl));
+  LS.set('wb_seeded', true);
+  renderHold();
+  closeOcrModal();
+  alert(`已导入 ${picked.length} 只持仓，当前共 ${myHold().length} 只`);
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function resetStocks(){
+  if(!confirm('恢复为数据中枢里的初始参考清单？\n你当前自己维护的持仓与自选将被覆盖（建议先导出备份）。')) return;
+  LS.set('wb_seeded', false);
+  LS.set('wb_hold_del',[]); LS.set('wb_hold_adj',{}); LS.set('wb_hold_custom',[]);
+  LS.set('wb_watch_del',[]); LS.set('wb_watch_custom',[]);
+  LS.set('wb_hold_seed_ver', 0);
+  LS.set('wb_watch_seed_ver', 0);
+  seedStocks(); renderHold(); renderWatch();
+  alert(`已恢复初始清单：持仓 ${myHold().length} 只 · 自选 ${myWatch().length} 只`);
+}
+
+/* 持仓健康分层 */
+function renderPos(hd){
+  const tiers=[
+    {k:'warn', t:'🔴 警戒区 · 跌幅>10%', d:'评估是破位还是洗盘，设定最后止损线', f:h=>h.pnlPct!=null&&h.pnlPct<=-10, c:'var(--red)'},
+    {k:'watch',t:'🟡 观察区 · -10%~0%',  d:'跟踪5日线，跌破即减仓', f:h=>h.pnlPct!=null&&h.pnlPct>-10&&h.pnlPct<0, c:'var(--yellow)'},
+    {k:'good', t:'🟢 盈利区 · >0%',      d:'浮盈>10%可考虑分批止盈或上移止损', f:h=>h.pnlPct!=null&&h.pnlPct>=0, c:'var(--green)'}
+  ];
+  $('posTier').innerHTML = tiers.map(t=>{
+    const list=hd.filter(t.f).sort((a,b)=>a.pnlPct-b.pnlPct);
+    const sum=list.reduce((a,h)=>a+((h.price!=null&&h.cost!=null&&h.shares)?(h.price-h.cost)*h.shares:0),0);
+    return `<div style="border:1px solid var(--line);border-left:4px solid ${t.c};border-radius:10px;padding:12px">
+      <div style="font-weight:700;font-size:13px">${t.t} <span style="color:var(--sub);font-weight:400">${list.length} 只</span></div>
+      <div class="stamp" style="margin:3px 0 8px">${t.d}</div>
+      ${list.map(h=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0"><span>${h.name}</span><b class="${h.pnlPct>=0?'up':'down'}">${h.pnlPct>=0?'+':''}${h.pnlPct}%</b></div>`).join('')||'<div class="stamp">—</div>'}
+      <div style="margin-top:8px;padding-top:7px;border-top:1px dashed var(--line);font-size:12px">小计 <b class="${sum>=0?'up':'down'}">${sum>=0?'+':'-'}¥${Math.abs(Math.round(sum)).toLocaleString('zh-CN')}</b></div>
+    </div>`;
+  }).join('');
+}
+/* 止盈止损计算器 */
+function runCalc(){
+  const c=+$('calcCost').value, q=+$('calcQty').value||100, sl=+$('calcSL').value||7, tp=+$('calcTP').value||15;
+  if(!c){$('calcOut').innerHTML='<span class="stamp">请填写成本价</span>';return;}
+  const slP=(c*(1-sl/100)).toFixed(2), tpP=(c*(1+tp/100)).toFixed(2);
+  const slM=Math.round(c*q*sl/100), tpM=Math.round(c*q*tp/100);
+  $('calcOut').innerHTML=`止损价 <b class="down">¥${slP}</b>　触发亏损 <b class="down">-¥${slM.toLocaleString('zh-CN')}</b><br>
+  止盈价 <b class="up">¥${tpP}</b>　兑现盈利 <b class="up">+¥${tpM.toLocaleString('zh-CN')}</b><br>
+  <span class="stamp">盈亏比 1 : ${(tp/sl).toFixed(2)}　${tp/sl>=2?'✅ 符合短线 2:1 底线':'⚠️ 盈亏比偏低，建议放大止盈或收紧止损'}</span>`;
+}
+
+/* 快捷指令复制 */
+function copyCmd(tex){navigator.clipboard.writeText(tex);const t=document.createElement('div');t.textContent='已复制：'+tex;t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#232a3a;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;z-index:99';document.body.appendChild(t);setTimeout(()=>t.remove(),1600);}
+
+/* 交易复盘小记（按日，存本机） */
+function saveJournal(){
+  const t=$('jText').value.trim(); if(!t){alert('写点什么再保存');return;}
+  const a=LS.get('wb_journal',[]); const i=a.findIndex(x=>x.date===today());
+  if(i>=0)a[i].text=t; else a.unshift({date:today(),text:t});
+  LS.set('wb_journal',a); renderJournal();
+}
+function renderJournal(){
+  const a=LS.get('wb_journal',[]); const cur=a.find(x=>x.date===today());
+  if(cur)$('jText').value=cur.text;
+  $('jStamp').textContent = a.length?`已存 ${a.length} 篇复盘`:'';
+  $('jHist').innerHTML = a.slice(0,5).map(x=>`<div style="font-size:12px;color:var(--sub);padding:4px 0;border-bottom:1px dashed var(--line)">📅 ${x.date}：${x.text.slice(0,40)}${x.text.length>40?'…':''}</div>`).join('');
+}
+
+/* ---------- 模块三：备课工作台（一键生成 + Markdown 编辑区） ---------- */
+const PREP_DOC_KEY = 'wb_prep_doc';
+const PREP_GENS = {
+  xueqing:(c,ch)=>`## 学情分析 · 《${c}》「${ch}」
+
+> 提示词（可复制给 AI）：你是一位资深高职教师，请分析《${c}》「${ch}」授课班级学情：先备知识、常见误区、分层教学建议。基于 ima 教学知识库，贴合高职学生真实处境。
+
+- 授课对象 / 年级：
+- 班级人数 / 学情特点：
+- 先备知识（已具备）：
+- 常见误区 / 易错点：
+- 学习动机与痛点：
+- 分层教学建议：
+  - 基础层：
+  - 提高层：
+  - 拓展层：`,
+  jiaoan:(c,ch)=>`## 教案框架 · 《${c}》「${ch}」（90 分钟）
+
+> 提示词（可复制给 AI）：你是资深高职教师，为《${c}》「${ch}」设计完整教案（90分钟），含丰富的课堂活动设计，基于 ima 教学知识库。
+
+### 一、教学基本信息
+- 课程 / 章节：
+- 授课对象：
+- 学时：
+
+### 二、学情分析
+- 先备知识：
+- 学习障碍：
+
+### 三、教学目标（三维）
+- 知识目标：
+- 能力目标：
+- 素养目标（含思政）：
+
+### 四、重难点
+- 重点：
+- 难点及突破：
+
+### 五、教学过程
+| 环节 | 教师活动 | 学生活动 | 时间 |
+|------|---------|---------|------|
+| 导入 |  |  |  |
+| 新授 |  |  |  |
+| 互动 |  |  |  |
+| 总结 |  |  |  |
+
+### 六、作业与反思
+- 分层作业：
+- 教学反思要点：`,
+  huodong:(c,ch)=>`## 课堂活动设计 · 《${c}》「${ch}」
+
+> 提示词（可复制给 AI）：为《${c}》「${ch}」设计 3 个课堂互动环节，每个含活动名称、组织形式、教师话术、时间控制、预期反应、观测点。基于 ima 教学知识库。
+
+### 活动 1
+- 名称：
+- 形式（讨论/投票/角色扮演/模拟）：
+- 教师话术：
+- 时间：
+- 预期学生反应：
+- 观测点：
+
+### 活动 2
+- 名称：
+- 形式：
+- 教师话术：
+- 时间：
+- 预期学生反应：
+- 观测点：
+
+### 活动 3
+- 名称：
+- 形式：
+- 教师话术：
+- 时间：
+- 预期学生反应：
+- 观测点：`,
+  dagang:(c,ch)=>`## 课件大纲 · 《${c}》「${ch}」（15-20 页）
+
+> 提示词（可复制给 AI）：你是资深课程设计师，为《${c}》「${ch}」出 PPT 大纲，逐页给出页标题、要点、配图建议、讲授提示。基于 ima 教学知识库。
+
+1. 封面（课程名 + 章节 + 授课人）
+2. 目录 / 本章导图
+3. 学情与目标（三维）
+4. 重难点提示
+5. 核心知识点 1-N（每点配图/表）
+6. 真实案例（95后/00后实例）
+7. 课堂互动环节
+8. 随堂练习
+9. 本节小结 + 思维导图
+10. 分层作业 + 延伸阅读
+11. 封底（致谢 / 二维码）`
+};
+const GEN_NAMES = {xueqing:'学情分析',jiaoan:'教案框架',huodong:'课堂活动',dagang:'课件大纲'};
+
+function insertIntoDoc(text){
+  const ta=$('prepDoc'); if(!ta)return;
+  const cur=ta.value, s=ta.selectionStart??cur.length, e=ta.selectionEnd??cur.length;
+  const pre=(cur.trim()&&s>0&&cur.slice(0,s).trim())? '\n\n---\n\n' : '';
+  ta.value = cur.slice(0,s)+pre+text+cur.slice(e);
+  const pos=s+pre.length+text.length;
+  ta.selectionStart=ta.selectionEnd=pos;
+  ta.focus();
+  savePrepDoc();
+}
+function genInsert(key){
+  const c=$('prepCourse').value.trim()||'课程名', ch=$('prepChapter').value.trim()||'章节名';
+  const gen=PREP_GENS[key]; if(!gen)return;
+  insertIntoDoc(gen(c,ch));
+  setPrepMode('edit');
+  copyCmd('已生成并插入：'+GEN_NAMES[key]);
+}
+function genAll(){
+  const c=$('prepCourse').value.trim()||'课程名', ch=$('prepChapter').value.trim()||'章节名';
+  const all=['xueqing','jiaoan','huodong','dagang'].map(k=>PREP_GENS[k](c,ch)).join('\n\n---\n\n');
+  insertIntoDoc(all);
+  setPrepMode('edit');
+  copyCmd('已生成全部 4 项并插入编辑区');
+}
+function setPrepMode(m){
+  const ed=$('prepDoc'),pv=$('prepPreview'),eb=$('prepEditBtn'),pb=$('prepPrevBtn');
+  if(!ed||!pv)return;
+  if(m==='preview'){
+    renderPreview();
+    ed.style.display='none'; pv.style.display='block';
+    pb.classList.add('active'); eb.classList.remove('active');
+  }else{
+    ed.style.display='block'; pv.style.display='none';
+    eb.classList.add('active'); pb.classList.remove('active');
+  }
+}
+function renderPreview(){
+  const txt=$('prepDoc').value, pv=$('prepPreview');
+  if(window.marked){ try{ pv.innerHTML = marked.parse(txt); }catch(err){ pv.textContent = txt; } } else { pv.textContent = txt; }
+}
+let _saveTimer=null;
+function savePrepDoc(){
+  if(!$('prepDoc'))return;
+  LS.set(PREP_DOC_KEY, $('prepDoc').value);
+  const s=$('prepStatus'); if(s){ s.style.opacity='1'; s.textContent='💾 草稿已自动保存'; clearTimeout(_saveTimer); _saveTimer=setTimeout(()=>{ s.style.opacity='.45'; },1400); }
+}
+function loadPrepDoc(){ if($('prepDoc')) $('prepDoc').value = LS.get(PREP_DOC_KEY,'')||''; }
+function copyPrepDoc(){ const v=$('prepDoc').value.trim(); if(!v){alert('编辑区为空');return;} navigator.clipboard.writeText(v); copyCmd('已复制全文'); }
+function clearPrepDoc(){ if(!confirm('清空编辑区？草稿将删除'))return; $('prepDoc').value=''; savePrepDoc(); copyCmd('已清空'); }
+
+/* 资源磁贴面板 */
+const TILE_KEY='wb_prep_tiles';
+const TILE_DEFAULTS=[
+  {ic:'🏛',nm:'国家智慧教育平台',cat:'教研',url:'https://www.smartedu.cn'},
+  {ic:'🎓',nm:'职业教育智慧平台',cat:'教研',url:'https://vocational.smartedu.cn'},
+  {ic:'📺',nm:'爱课程 MOOC',cat:'教研',url:'https://www.icourse163.org'},
+  {ic:'🌧',nm:'雨课堂',cat:'教研',url:'https://www.yuketang.cn'},
+  {ic:'📚',nm:'超星学习通',cat:'教研',url:'https://www.chaoxing.com'},
+  {ic:'💡',nm:'ima 知识库',cat:'AI',url:'https://ima.qq.com'},
+  {ic:'🤖',nm:'Kimi',cat:'AI',url:'https://kimi.moonshot.cn'},
+  {ic:'🌈',nm:'文心一言',cat:'AI',url:'https://yiyan.baidu.com'},
+  {ic:'⚡',nm:'通义千问',cat:'AI',url:'https://tongyi.aliyun.com'},
+  {ic:'🫘',nm:'豆包',cat:'AI',url:'https://www.doubao.com'},
+  {ic:'🌐',nm:'秘塔 AI 搜索',cat:'AI',url:'https://metaso.cn'},
+  {ic:'🧠',nm:'ChatGPT',cat:'AI',url:'https://chat.openai.com'}
+];
+function getTiles(){ const s=LS.get(TILE_KEY,null); return (s&&s.length)?s:TILE_DEFAULTS.slice(); }
+function saveTiles(a){ LS.set(TILE_KEY,a); }
+function renderTiles(){
+  const a=getTiles();
+  $('tileGrid').innerHTML=a.map((t,i)=>`<a class="tile" href="${encodeURI(t.url)}" target="_blank" rel="noopener"><span class="del" onclick="event.preventDefault();event.stopPropagation();delTile(${i})" title="删除">✕</span><span class="ic">${t.ic||'🔗'}</span><span class="nm">${t.nm}</span><span class="cat">${t.cat||''}</span></a>`).join('');
+}
+function normUrl(u){ return /^https?:\/\//i.test(u)?u:'https://'+u; }
+function addTile(){
+  const nm=$('tileName').value.trim(), url=$('tileUrl').value.trim();
+  if(!nm||!url){alert('名称和链接都要填');return;}
+  const a=getTiles(); a.push({ic:'🔗',nm,cat:'自定义',url:normUrl(url)});
+  saveTiles(a); renderTiles(); $('tileName').value=''; $('tileUrl').value='';
+}
+function delTile(i){ const a=getTiles(); a.splice(i,1); saveTiles(a); renderTiles(); }
+
+/* AI 提示词模板库 */
+const TPL_KEY='wb_prep_tpl';
+const TPL_LIB=[
+  {cat:'学情与目标',t:'学情分析',d:'分析班级基础与分层建议',p:'分析《{c}》「{ch}」的学情：先备知识、常见误区、分层教学建议（基础/提高/拓展层），基于 ima 教学知识库，贴合高职学生。'},
+  {cat:'学情与目标',t:'三维教学目标',d:'知识/能力/素养拆解',p:'为《{c}》「{ch}」设计三维教学目标，每条用可测量行为动词，注明对应大纲条目或毕业要求指标点。'},
+  {cat:'内容设计',t:'重难点突破',d:'重点难点+突破策略',p:'梳理《{c}》「{ch}」重难点，给出每条难点突破策略与学生疑问预判与应答话术。'},
+  {cat:'内容设计',t:'案例选取',d:'95后/00后真实案例',p:'为《{c}》「{ch}」找3个适合课堂讨论的95后/00后真实创业或职场案例。'},
+  {cat:'内容设计',t:'课程思政融入',d:'挖掘思政融入点',p:'为《{c}》「{ch}」挖掘2个课程思政融入点，说明融入方式与育人目标。'},
+  {cat:'内容设计',t:'大赛教案格式',d:'教学能力大赛教案',p:'把《{c}》「{ch}」整理成教学能力大赛标准教案格式。'},
+  {cat:'活动与互动',t:'破冰导入',d:'情境导入设计',p:'为《{c}》「{ch}」设计情境导入（含导入语与金句），贴合高职学生兴趣。'},
+  {cat:'活动与互动',t:'小组讨论',d:'小组任务组织',p:'为《{c}》「{ch}」设计小组任务，含话题、分组方式、时间、汇报方式。'},
+  {cat:'活动与互动',t:'角色扮演',d:'情景模拟',p:'为《{c}》「{ch}」设计角色扮演活动，含角色、脚本、点评要点。'},
+  {cat:'活动与互动',t:'投票辩论',d:'观点交锋',p:'为《{c}》「{ch}」设计投票/辩论环节，含辩题与引导提问。'},
+  {cat:'评价与反思',t:'随堂测验',d:'出题+答案',p:'为《{c}》「{ch}」出随堂测：单选6+多选2+简答2，附答案与解析。'},
+  {cat:'评价与反思',t:'分层作业',d:'基础/提高/拓展',p:'为《{c}》「{ch}」布置分层作业（基础题/提高题/拓展题）。'},
+  {cat:'评价与反思',t:'教学反思',d:'课后反思框架',p:'为《{c}》「{ch}」生成教学反思模板：目标达成度、学生反馈、改进措施、下一轮调整。'}
+];
+function getTpls(){ const s=LS.get(TPL_KEY,null); return (s&&s.length)?s:TPL_LIB.slice(); }
+function saveTpls(a){ LS.set(TPL_KEY,a); }
+function fillCtx(p){ const c=$('prepCourse').value.trim()||'课程名', ch=$('prepChapter').value.trim()||'章节名'; return String(p).replace(/\{c\}/g,c).replace(/\{ch\}/g,ch); }
+function renderTplLib(filter=''){
+  const raw=getTpls(); const q=(filter||'').trim().toLowerCase();
+  const idxs=q?raw.map((x,i)=>({x,i})).filter(o=>(o.x.t+o.x.d+o.x.p+o.x.cat).toLowerCase().includes(q)):raw.map((x,i)=>({x,i}));
+  if(!idxs.length){$('tplLib').innerHTML='<div class="empty" style="padding:12px">未找到匹配模板</div>';return;}
+  const cats=[...new Set(idxs.map(o=>o.x.cat))];
+  $('tplLib').innerHTML=cats.map(c=>{
+    const items=idxs.filter(o=>o.x.cat===c);
+    return `<div class="tpl-cat"><h4>${c}</h4><div class="tpl-row">`+items.map(({x,i})=>{
+      const tip=(x.d?x.d+'\n':'')+x.p.slice(0,120)+(x.p.length>120?'…':'');
+      return `<div class="tpl-chip" title="${tip.replace(/"/g,'&quot;')}" onclick="insertTpl(${i})"><span class="t-t">${x.t}</span><span class="ic" onclick="event.stopPropagation();copyTpl(${i})" title="复制">📋</span></div>`;
+    }).join('')+`</div></div>`;
+  }).join('');
+}
+function toggleTplAdd(){
+  const box=$('tplAddBox'), btn=$('tplAddBtn');
+  const open=box.classList.toggle('open');
+  btn.style.display=open?'none':'inline-block';
+  if(open) $('ntCat').focus();
+}
+function insertTpl(i){ const a=getTpls(); const p=fillCtx(a[i].p); insertIntoDoc(p); copyCmd('已插入模板：'+a[i].t); }
+function copyTpl(i){ const a=getTpls(); const p=fillCtx(a[i].p); navigator.clipboard.writeText(p); copyCmd('已复制模板：'+a[i].t); }
+function addTpl(){
+  const cat=$('ntCat').value.trim(), t=$('ntTitle').value.trim(), p=$('ntPrompt').value.trim();
+  if(!cat||!t||!p){alert('分类/标题/提示词都要填');return;}
+  const a=getTpls(); a.push({cat,t,d:'',p}); saveTpls(a); renderTplLib($('tplFilter').value);
+  $('ntCat').value='';$('ntTitle').value='';$('ntPrompt').value=''; toggleTplAdd();
+}
+
+/* 初始化 */
+loadPrepDoc();
+$('prepDoc').addEventListener('input', savePrepDoc);
+renderTiles();
+renderTplLib();
+/* ---------- 模块三：PPT / 流程生成器 ---------- */
+const CHAPTERS = {
+  '大学生职业生涯规划':['职业生涯规划概述','自我认知：性格与能力','霍兰德职业兴趣探索','职业价值观澄清','职业世界探索','AI时代的职业锚','生涯决策与目标设定','行动计划与执行','简历撰写与投递','面试实战技巧','就业政策与权益保护','职业适应与生涯管理'],
+  '创新创业基础':['创新创业时代背景','创新思维与方法','创业机会识别','商业模式画布','创业团队组建','市场调研与用户画像','产品与服务设计','创业融资与财务','创业计划书撰写','路演与项目答辩','政策扶持与资源对接','风险防范与法律常识']
+};
+function loadChapters(){
+  const c=$('pptCourse').value, sel=$('pptChapter');
+  sel.innerHTML=(CHAPTERS[c]||[]).map(x=>`<option>${x}</option>`).join('');
+  const fl=$('flowChList');
+  if(fl) fl.innerHTML=[...new Set(Object.values(CHAPTERS).flat())].map(x=>`<option value="${x}">${x}</option>`).join('');
+}
+function copyBox(id){const t=$(id);if(!t.value){alert('先点按钮生成指令');return;}navigator.clipboard.writeText(t.value);copyCmd('指令已复制，粘贴到对话即可');}
+function buildPPT(mode){
+  const c=$('pptCourse').value, ch=$('pptChapter').value||'本章',
+        pg=$('pptPages').value, st=$('pptStyle').value, min=$('pptMin').value;
+  const src=`所有内容基于 ima「教学」知识库中该课程的大纲与课件取材，不要泛泛而谈，要落到高职学生的真实处境。`;
+  const M={
+    outline:`你是资深大学课程设计师。为课程《${c}》的「${ch}」章出一份 PPT 大纲。逐页给出：页码、页标题、要点（3-5 条）、配图/图表建议、备注（讲授提示）。页数 ${pg} 页，风格 ${st}，对应 ${min} 分钟课堂。结构：封面→目录→学情与三维目标→重难点→核心知识点(分点配图)→真实案例→课堂互动→随堂练习→小结导图→分层作业→封底。${src}`,
+    make:`你是资深大学课程设计师。为课程《${c}》的「${ch}」章直接制作 PPT 成品（.pptx）。要求：${pg} 页，风格「${st}」，字号层级清晰、每页不超过 6 行文字；含数据图表至少 2 张、真实案例 1-2 个、课堂互动页与随堂练习页各 1 页、小结思维导图 1 页、分层作业页 1 页。${src}`,
+    speech:`为《${c}》「${ch}」章的 PPT 配一份逐页讲稿。每页给出：开场衔接语、核心讲授内容（口语化、可直接照读）、与学生互动的提问、时间控制（合计 ${min} 分钟）。语言自然，避免书面腔。${src}`,
+    quiz:`为《${c}》「${ch}」章出一份随堂测：单选 6 题 + 多选 2 题 + 简答 2 题，覆盖本章重难点，难度梯度由易到难。每题附答案与解析，简答题给评分要点。${src}`,
+    lesson:`把《${c}》「${ch}」章整理成教学能力大赛标准教案（${min} 分钟）。包含：课程信息表、学情分析（知识/能力/素养三维起点+学习障碍）、教学目标（知识/能力/素养，含可测量行为动词）、重难点及突破策略、思政融入点、教学策略与信息化手段、教学实施过程（课前/课中/课后三段，含时间轴、教师活动、学生活动、设计意图、信息化手段）、考核评价方案（过程性+终结性，附评价量表）、教学反思与特色创新点。输出为规范 Word 文档。${src}`
+  };
+  $('pptPrompt').value=M[mode]||M.outline;
+}
+loadChapters();
+const FLOWS={
+  six:{n:'标准六段式',s:[['导入','情境/设问',.10],['新授','知识点拆解',.40],['互动','讨论/模拟',.20],['练习','随堂任务',.15],['总结','导图回顾',.10],['作业','分层布置',.05]]},
+  bopc:{n:'BOPPPS 模型',s:[['Bridge-in','导入吸引',.08],['Objective','目标明确',.05],['Pre-test','前测摸底',.10],['Participatory','参与式学习',.47],['Post-test','后测检验',.20],['Summary','总结提升',.10]]},
+  task:{n:'任务驱动/项目式',s:[['情境任务','抛出真实任务',.12],['方案设计','小组拆解',.23],['实施探究','动手完成',.35],['成果展示','汇报路演',.18],['点评迁移','教师升华',.12]]},
+  case:{n:'案例研讨式',s:[['案例呈现','情境铺陈',.15],['问题聚焦','矛盾设问',.12],['小组研讨','观点碰撞',.33],['观点交锋','全班辩议',.22],['理论提炼','概念回归',.18]]},
+  flip:{n:'翻转课堂',s:[['课前检验','微课自学反馈',.15],['疑难答疑','集中破难点',.22],['深度活动','协作探究',.40],['成果互评','量规打分',.15],['拓展延伸','课后任务',.08]]}
+};
+function renderFlowMap(){
+  const f=FLOWS[$('flowModel').value]||FLOWS.six, min=+$('flowMin').value||45;
+  $('flowMap').innerHTML=f.s.map((x,i)=>`<div class="stg"><b>${x[0]}</b>${x[1]}<div style="color:var(--pink);font-size:11px;margin-top:2px">${Math.round(min*x[2])}min</div></div>`).join('<span class="ar">→</span>');
+}
+function buildFlow(){
+  const ch=$('flowCh').value||'本章', min=+$('flowMin').value||45, f=FLOWS[$('flowModel').value]||FLOWS.six;
+  renderFlowMap();
+  const axis=f.s.map(x=>`${x[0]}(${Math.round(min*x[2])}min，${x[1]})`).join(' → ');
+  $('flowPrompt').value=`为「${ch}」设计 ${min} 分钟课堂讲授流程，采用【${f.n}】：${axis}。每一段请给出：① 教师动作与话术要点 ② 学生活动与预期反应 ③ 关键提问（含追问链）④ 板书/课件要点 ⑤ 该段落的观测点（怎么判断学生真的学会了）。整体基于 ima「教学」知识库取材，贴合高职学生学情，语言可直接用于课堂。`;
+}
+renderFlowMap();
+
+/* 交易纪律自查（每日重置） */
+function renderDisc(){
+  const st = LS.get('wb_disc',{date:'',checks:[]});
+  if(st.date!==today()){st.date=today();st.checks=[];LS.set('wb_disc',st);}
+  $('discipline').innerHTML = DISC.map((d,i)=>`<label class="disc ${st.checks.includes(i)?'done':''}"><input type="checkbox" ${st.checks.includes(i)?'checked':''} onchange="toggleDisc(${i})"><span>${d}</span></label>`).join('');
+  $('discStamp').textContent = st.checks.length===DISC.length?'✅ 今日已自查完毕':`已查 ${st.checks.length}/${DISC.length}`;
+}
+function toggleDisc(i){
+  const st = LS.get('wb_disc',{date:today(),checks:[]});
+  const k = st.checks.indexOf(i); if(k>=0)st.checks.splice(k,1);else st.checks.push(i);
+  LS.set('wb_disc',st); renderDisc();
+}
+
+/* ---------- 模块三：备课计划与产出 ---------- */
+function getPrep(){return LS.get('wb_prep_plan',[])}
+function renderPrep(){
+  $('prepPlan').innerHTML = getPrep().map((p,i)=>`<label class="wk ${p.done?'done':''}"><input type="checkbox" ${p.done?'checked':''} onchange="togglePrep(${i})"><span>${p.text}</span></label>`).join('')||'<div class="empty" style="padding:12px">添加本周备课事项</div>';
+}
+function addPrep(){const v=$('ppInput').value.trim();if(!v)return;const a=getPrep();a.push({text:v,done:false});LS.set('wb_prep_plan',a);$('ppInput').value='';renderPrep();}
+function togglePrep(i){const a=getPrep();a[i].done=!a[i].done;LS.set('wb_prep_plan',a);renderPrep();}
+function getLog(){return LS.get('wb_prep_log',[])}
+function renderLog(){
+  $('prepLog').innerHTML = getLog().map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:13px;border-bottom:1px dashed var(--line)"><span style="flex:1">📄 ${p.text}</span><span class="stamp">${p.date}</span><button class="btn sm ghost" onclick="delLog(${i})">删</button></div>`).join('')||'<div class="empty" style="padding:12px">每次生成PPT/教案后记一条，期末就是教学成果素材库</div>';
+}
+function addLog(){const v=$('plInput').value.trim();if(!v)return;const a=getLog();a.unshift({text:v,date:today()});LS.set('wb_prep_log',a);$('plInput').value='';renderLog();}
+function delLog(i){const a=getLog();a.splice(i,1);LS.set('wb_prep_log',a);renderLog();}
+renderPrep(); renderLog();
+
+/* 自选股：单一数据源 wb_watch，全部可增删 */
+function allWatch(){ return myWatch(); }
+function renderWatch(){
+  const all = myWatch();
+  const held = new Set(myHold().map(h=>h.code));
+  let view = all.map((w,i)=>({w,i}));
+  if(watchFilter==='hold') view = view.filter(x=>held.has(x.w.code));
+  else if(watchFilter==='watch') view = view.filter(x=>!held.has(x.w.code));
+  if(watchSearch){
+    const k = watchSearch.trim().toLowerCase();
+    if(k) view = view.filter(x=>(x.w.name&&x.w.name.toLowerCase().includes(k))||(x.w.code&&x.w.code.includes(k)));
+  }
+  const rows = view.map(({w,i})=>{
+    const q = (typeof poolQuotes!=='undefined' && poolQuotes[w.code]) || null;
+    const price = q&&q[3]&&parseFloat(q[3])>0 ? parseFloat(q[3]) : w.price;
+    const chgV  = q&&q[32]!=null&&q[32]!=='' ? parseFloat(q[32]) : w.changePct;
+    const col = chgV==null?'':(chgV>=0?'up':'down');
+    const chg = chgV==null?'—':`<b class="${col}">${chgV>=0?'+':''}${chgV}%</b>`;
+    const pr  = price==null?'—':`¥${price}`;
+    const heldTag = held.has(w.code)?`<span class="tag" style="color:#fff;background:#d43d3d;border-color:#d43d3d">已持仓</span> `:'';
+    return `<tr><td>${heldTag}<b>${w.name}</b></td><td>${w.code}</td><td>${pr}</td><td>${chg}</td><td><button class="btn sm ghost" onclick="toHold(${i})">转持仓</button> <button class="btn sm ghost" onclick="delWatch(${i})">删</button></td></tr>`;
+  });
+  const total = all.length;
+  if(!total){ $('watchlist').innerHTML = '<div class="empty">自选股为空 · 用下方表单或指令添加</div>'; return; }
+  if(!rows.length){ $('watchlist').innerHTML = '<div class="empty">当前筛选条件下没有自选股</div>'; return; }
+  const filterNote = watchFilter==='hold'?'（已持仓）':watchFilter==='watch'?'（仅观察）':'';
+  $('watchlist').innerHTML = `<table class="tb"><tbody>${rows.join('')}</tbody></table><p class="hint" style="margin-top:8px">共 ${total} 只 · 显示 ${rows.length} 只${filterNote} · 价格随「🔄 刷新实时行情」更新</p>`;
+}
+function setWatchFilter(f){
+  watchFilter=f;
+  const tabs=document.querySelectorAll('#wlTabs .tab'); tabs.forEach(t=>t.classList.toggle('active', t.dataset.f===f));
+  renderWatch();
+}
+function onWatchSearch(v){ watchSearch=v; renderWatch(); }
+function addWatch(){
+  const n=$('wlName').value.trim(), c=$('wlCode').value.trim();
+  if(!n&&!c){alert('名称和代码至少填一个');return;}
+  const r=doAddWatch(n,c);
+  if(r.ok){ $('wlName').value='';$('wlCode').value=''; }
+  wlMsg(r.msg); renderOppSection();
+}
+function delWatch(i){const arr=myWatch();const w=arr[i];if(!w)return;arr.splice(i,1);setWatch(arr);renderWatch();wlMsg('已删除自选：'+w.name);}
+/* 自选 → 持仓（买入了） */
+function toHold(i){
+  const w=myWatch()[i]; if(!w) return;
+  const c=prompt(`把「${w.name}」加入持仓\n成本价：`, w.price??''); if(c===null) return;
+  const s=prompt('买入股数：', '500'); if(s===null) return;
+  const cv=parseFloat(c), sv=parseInt(s)||0;
+  if(isNaN(cv)||cv<=0){ alert('成本价不对'); return; }
+  const arr=myHold();
+  if(arr.some(h=>h.code===w.code)){ alert(w.name+' 已在持仓中，请在持仓表用「改」调整'); return; }
+  arr.push(calcPnl({name:w.name,code:w.code,cost:cv,shares:sv,price:w.price??cv,pnlPct:0,note:''}));
+  setHold(arr);
+  const wl=myWatch(); wl.splice(i,1); setWatch(wl);
+  renderHold(); renderWatch(); renderOppSection(); wlMsg(`已转入持仓：${w.name} ${sv}股 @${cv}`);
+}
+
+/* —— 自选股指令解析：“添加自选 名称/代码” · “删除自选 XXX” —— */
+function wlMsg(t,bad){ const el=$('wlCmdMsg'); if(el){ el.textContent=t||''; el.style.color=bad?'var(--red,#d43d3d)':'var(--sub)'; } }
+function codeByName(n){
+  const s=(window.WB_DATA||{}).stock||{};
+  const pool=[].concat(myWatch(),myHold(),s.watchlist||[],s.holdings||[],s.opportunities||[]);
+  const hit=pool.find(x=>x.name&&(x.name===n||x.name.indexOf(n)===0));
+  return hit?hit.code:null;
+}
+function doAddWatch(name,code){
+  if(code&&!/^\d{6}$/.test(code)) return {ok:false,msg:'代码需为 6 位数字：'+code};
+  if(!code&&name){ code=codeByName(name); if(!code) return {ok:false,msg:`「${name}」找不到代码，请写成「添加自选 ${name}/300308」`}; }
+  if(!name) name=codeName(code)||code;
+  if(myWatch().some(w=>w.code===code)) return {ok:false,msg:name+' 已在自选股中'};
+  const arr=myWatch(); arr.push({name,code}); setWatch(arr);
+  renderWatch(); resolveWatchName(code);
+  return {ok:true,msg:'已添加自选：'+name+' '+code};
+}
+function doDelWatch(key){
+  const arr=myWatch();
+  const i=arr.findIndex(w=>w.code===key||w.name===key||(w.name&&w.name.indexOf(key)===0));
+  if(i<0) return {ok:false,msg:`自选股里没有「${key}」`};
+  const nm=arr[i].name; arr.splice(i,1); setWatch(arr); renderWatch();
+  return {ok:true,msg:'已删除自选：'+nm};
+}
+/* 只给了代码时，用行情接口补全股票名 */
+function resolveWatchName(code){
+  if(typeof txJsonp!=='function') return;
+  txJsonp([code]).then(q=>{
+    const nm=q[code]&&q[code][1];
+    if(!nm) return;
+    const arr=myWatch(), it=arr.find(w=>w.code===code);
+    if(it&&it.name===code){ it.name=nm; setWatch(arr); renderWatch(); }
+  }).catch(()=>{});
+}
+function runWatchCmd(){
+  const raw=($('wlCmd').value||'').trim();
+  if(!raw){ wlMsg('请输入指令，如：添加自选 中际旭创/300308',true); return; }
+  const r=parseWatchCmd(raw);
+  wlMsg(r.msg, !r.ok);
+  if(r.ok) $('wlCmd').value='';
+}
+function parseWatchCmd(raw){
+  const t=raw.replace(/[：:]/g,' ').replace(/\s+/g,' ').trim();
+  let m=t.match(/^(添加自选|加自选|新增自选|添加|加入自选|买入自选|add)\s*(.+)$/i);
+  if(m) return batchWatch(m[2], a=>{
+    const seg=a.split(/[\/／|]/).map(x=>x.trim()).filter(Boolean);
+    let code=null,name=null;
+    seg.forEach(x=>{ if(/^\d{6}$/.test(x))code=x; else if(!name)name=x; });
+    if(!code){ const g=a.match(/\d{6}/); if(g){code=g[0]; if(!name)name=a.replace(g[0],'').replace(/[\/／|\s]/g,'')||null;} }
+    return doAddWatch(name,code);
+  });
+  m=t.match(/^(删除自选|删自选|移除自选|去掉自选|删除|移除|del|remove)\s*(.+)$/i);
+  if(m) return batchWatch(m[2], a=>doDelWatch(a.replace(/[\/／|]/g,' ').trim()));
+  return {ok:false,msg:'看不懂这条指令。用法：添加自选 中际旭创/300308 · 删除自选 中际旭创'};
+}
+function batchWatch(argStr, fn){
+  const items=argStr.split(/[,，、;；]+/).map(x=>x.trim()).filter(Boolean);
+  if(!items.length) return {ok:false,msg:'指令后面要跟股票名或代码'};
+  const out=items.map(fn);
+  return {ok: out.some(r=>r.ok), msg: out.map(r=>r.msg).join(' · ')};
+}
+
+/* ---------- 模块二：健康 ---------- */
+$('hDate').value = today();
+$('hHeight').value = LS.get('wb_height','');
+function saveHealth(){
+  const rec = {
+    date:$('hDate').value||today(),
+    weight:+$('hWeight').value||null,
+    bpHigh:+$('hBpHigh').value||null,
+    bpLow:+$('hBpLow').value||null,
+    water:+$('hWater').value||null,
+    sleep:+$('hSleep').value||null,
+    breakfast:$('hBreakfast').value.trim()||null,
+    lunch:$('hLunch').value.trim()||null,
+    dinner:$('hDinner').value.trim()||null,
+    symptom:$('hSymptom').value.trim()||null,
+    period:$('hPeriod').checked,
+    mood:$('hMood').value||null
+  };
+  if($('hHeight').value) LS.set('wb_height',$('hHeight').value);
+  const hasAny = Object.keys(rec).some(k=>k!=='date' && rec[k]!=null && rec[k]!==false && rec[k]!=='');
+  if(!hasAny){alert('请至少填写一项');return;}
+  const arr = LS.get('wb_health',[]).filter(r=>r.date!==rec.date); arr.push(rec);
+  arr.sort((a,b)=>a.date<b.date?-1:1); LS.set('wb_health',arr);
+  ['hWeight','hBpHigh','hBpLow','hWater','hSleep','hBreakfast','hLunch','hDinner','hSymptom'].forEach(i=>$(i).value='');
+  $('hPeriod').checked=false; $('hMood').value='';
+  updGoalBars(); renderHealth();
+  if(CLOUD.ok) cloudSaveHealth(rec);
+}
+function exportHealthCSV(){
+  const arr = LS.get('wb_health',[]);
+  const head='date,weight_kg,bp_high,bp_low,water_cups,sleep_hours,breakfast,lunch,dinner,symptom,period_start,mood\n';
+  const csv = head+arr.map(r=>[r.date,r.weight??'',r.bpHigh??'',r.bpLow??'',r.water??'',r.sleep??'',r.breakfast??'',r.lunch??'',r.dinner??'',r.symptom??'',r.period?1:0,r.mood??''].join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'})); a.download='健康数据.csv'; a.click();
+}
+function syncHealth(){
+  if(CLOUD.ok){ alert('已接入云端，健康记录实时同步，无需手动同步 ☁️'); return; }
+  const arr=LS.get('wb_health',[]);
+  if(!arr.length){alert('本机暂无健康记录可同步');return;}
+  const lines=arr.map(r=>`- ${r.date}｜体重:${r.weight??''}｜血压:${r.bpHigh??'-'}/${r.bpLow??'-'}｜喝水:${r.water??''}杯｜睡眠:${r.sleep??''}h｜三餐:${[r.breakfast,r.lunch,r.dinner].filter(Boolean).join('/')||'-'}｜不适:${r.symptom||'-'}｜经期:${r.period?1:0}｜心情:${r.mood||''}`).join('\n');
+  const h=LS.get('wb_height','');
+  const txt='【同步健康到工作台数据中枢】请帮我把以下健康记录合并进 data.js 的 WB_DATA.health（按 date 去重）；身高 '+(h||'未填')+' 写入 WB_DATA.meta.height：\n'+lines;
+  navigator.clipboard.writeText(txt).then(()=>alert('已复制 '+arr.length+' 条健康记录同步指令\n发给我即可上云共享 + 让自动化生成周期预测'));
+}
+function updateSyncBadge(){
+  const tn=LS.get('wb_tasks',[]).length, hn=LS.get('wb_health',[]).length;
+  const a=document.getElementById('syncTaskN'); if(a)a.textContent=tn;
+  const b=document.getElementById('syncHealthN'); if(b)b.textContent=hn;
+}
+let chW=null,chH=null;
+function renderHealth(){
+  const cloud=(D.health||[]);
+  const local=LS.get('wb_health',[]);
+  const byDate={};
+  cloud.forEach(r=>{if(r&&r.date)byDate[r.date]=r;});
+  local.forEach(r=>{if(r&&r.date&&!byDate[r.date])byDate[r.date]={...r};});
+  const arr=Object.values(byDate).sort((a,b)=>a.date<b.date?-1:1);
+  const h=+(D.meta&&D.meta.height)||+(LS.get('wb_height',0)||0);
+  const wRec = arr.filter(r=>r.weight!=null).slice(-30);
+  if(h&&wRec.length){const bmi=(wRec[wRec.length-1].weight/((h/100)**2)).toFixed(1);
+    $('bmiOut').innerHTML=`最新 BMI：<b>${bmi}</b>（${bmi<18.5?'偏瘦':bmi<24?'正常 ✅':bmi<28?'超重':'肥胖'}）· 共 ${wRec.length} 条体重记录`;}
+  /* 周期预测 */
+  const ps = arr.filter(r=>r.period).map(r=>r.date).sort();
+  let avg=null;
+  if(ps.length>=2){
+    const gaps=[]; for(let i=1;i<ps.length;i++) gaps.push((new Date(ps[i])-new Date(ps[i-1]))/864e5);
+    avg = Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length);
+    const next = new Date(new Date(ps[ps.length-1]).getTime()+avg*864e5);
+    const left = Math.ceil((next-new Date(today()))/864e5);
+    $('periodOut').innerHTML=`已记录 <b>${ps.length}</b> 个周期起点，平均周期 <b>${avg}</b> 天<br>下次预计：<b style="color:var(--brand)">${next.toISOString().slice(0,10)}</b>（${left>0?left+' 天后':'就在近期'}）<br><span class="stamp">${left<=3&&left>=0?'⚠️ 已进入提前3天提醒窗口':'提醒规则：提前 3 天弹窗'}</span>`;
+  } else $('periodOut').innerHTML=`<div class="empty">需至少 2 个经期起点（3 个月更佳）才能预测<br>录入时勾选「经期开始日」即可</div>`;
+  /* 今日健康建议：优先云端(自动化生成)，否则本地生成 */
+  let adv=[];
+  if(D.healthAdvice&&Array.isArray(D.healthAdvice.advice)&&D.healthAdvice.advice.length){
+    if(D.healthAdvice.nextPeriod) adv.push(`🌸 下次经期预计 ${D.healthAdvice.nextPeriod}`);
+    adv=adv.concat(D.healthAdvice.advice);
+  } else {
+    const rec = arr.find(r=>r.date===today());
+    if(rec){
+      if(rec.sleep!=null&&rec.sleep<7) adv.push(`😴 昨晚睡眠仅 ${rec.sleep}h，低于 7h 目标，今天注意午休、避免高强度用脑`);
+      if(rec.water!=null&&rec.water<8) adv.push(`💧 今天喝水 ${rec.water} 杯，还差 ${8-rec.water} 杯，少量多次更利于代谢`);
+      if(rec.bpHigh!=null&&rec.bpLow!=null){
+        if(rec.bpHigh>=140||rec.bpLow>=90) adv.push(`🩸 今日血压 ${rec.bpHigh}/${rec.bpLow} mmHg，已超出正常高值，建议低盐饮食、监测复测`);
+        else if(rec.bpHigh<90||rec.bpLow<60) adv.push(`🩸 今日血压 ${rec.bpHigh}/${rec.bpLow} mmHg 偏低，起身宜慢，避免空腹剧烈运动`);
+        else adv.push(`🩸 今日血压 ${rec.bpHigh}/${rec.bpLow} mmHg，处于正常范围`);
+      }
+      if(!rec.breakfast&&!rec.lunch&&!rec.dinner) adv.push('🍽 今天还没记录三餐，简单补录可帮你观察饮食与精力/体重的关系');
+      else { const meals=[rec.breakfast&&'早',rec.lunch&&'中',rec.dinner&&'晚'].filter(Boolean); adv.push(`🍽 已记录${meals.join('、')}餐，均衡搭配比完美食谱更重要`); }
+      if(rec.symptom) adv.push(`🩺 今日不适：${rec.symptom}（持续或加重请就医）`);
+      if(rec.mood) adv.push(`🌤 今日心情：${rec.mood}（已记录，长期可观察情绪节律）`);
+    } else adv.push('📝 今天还没录入健康数据，花 10 秒记一下体重 / 喝水 / 睡眠吧');
+    if(wRec.length>=2){const a=wRec[0].weight,b=wRec[wRec.length-1].weight;if(b>a)adv.push(`⚠️ 近 30 天体重上升 +${(b-a).toFixed(1)}kg，留意饮食与运动`);else if(b<a)adv.push(`✅ 近 30 天体重下降 ${(a-b).toFixed(1)}kg，保持节奏`);}
+    if(ps.length>=2&&avg){const next=new Date(new Date(ps[ps.length-1]).getTime()+avg*864e5);const left=Math.ceil((next-new Date(today()))/864e5);if(left<=3&&left>=0)adv.push(`🌸 距下次经期约 ${left} 天，建议减少生冷、备好暖贴、运动以舒缓为主`);}
+  }
+  $('healthAdvice').innerHTML=adv.map(a=>`<div style="padding:4px 0;border-bottom:1px dashed var(--line)">${a}</div>`).join('');
+  updateSyncBadge();
+  renderWellness();
+  /* 图表 */
+  if(typeof Chart==='undefined') return;
+  if(chW)chW.destroy(); if(chH)chH.destroy();
+  const hasWeight = wRec.length >= 2;
+  const emptyW = $('emptyWeight'); if(emptyW) emptyW.style.display = hasWeight ? 'none' : '';
+  if(hasWeight){
+    chW = new Chart($('chWeight'),{type:'line',data:{labels:wRec.map(r=>r.date.slice(5)),datasets:[{label:'体重 kg',data:wRec.map(r=>r.weight),borderColor:'#2f5575',backgroundColor:'rgba(47,85,117,.1)',fill:true,tension:.3}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}}});
+  }
+  const last14 = arr.slice(-14);
+  const hasHabit = last14.some(r=>r.water!=null||r.sleep!=null);
+  const emptyH = $('emptyHabit'); if(emptyH) emptyH.style.display = hasHabit ? 'none' : '';
+  if(hasHabit){
+    chH = new Chart($('chHabit'),{type:'line',data:{labels:last14.map(r=>r.date.slice(5)),datasets:[
+      {label:'喝水量(杯)',data:last14.map(r=>r.water??null),borderColor:'#4a90d9',backgroundColor:'rgba(74,144,217,.12)',fill:true,tension:.3,spanGaps:true},
+      {label:'睡眠(h)',data:last14.map(r=>r.sleep??null),borderColor:'#3aa675',backgroundColor:'rgba(58,166,117,.12)',fill:true,tension:.3,spanGaps:true}
+    ]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{y:{ticks:{font:{size:10}}}}}});
+  }
+}
+/* 养生辟谣：网络常见无依据养生谣言 + 权威真相（每日轮换一条） */
+const WELLNESS_RUMORS=[
+  {r:'每天必须喝满 8 杯水（约2升）才健康', f:'饮水量因人而异，靠口渴感与尿液颜色判断即可；过量饮水反而增加肾脏与心脏负担。', s:'《中国居民膳食指南（2022）》· 科普中国'},
+  {r:'喝醋能软化血管、降低血脂', f:'醋进入肠胃后被消化吸收，无法直达血液“软化血管”；长期空腹喝醋还易伤及胃黏膜。', s:'中华医学会科普平台'},
+  {r:'碱性食物/水能改变体质、防癌抗癌', f:'人体酸碱平衡由肺、肾精密调节，食物不会改变血液 pH；“酸碱体质”理论已被科学界证伪。', s:'中国科协·科普中国'},
+  {r:'人体有“宿便”需定期排毒', f:'医学上并无“宿便”概念，肠道也不会积“毒”；所谓排毒产品多属营销话术。', s:'科普中国'},
+  {r:'骨头汤补钙效果好', f:'骨头汤钙含量极低且脂肪偏高；补钙应优选奶类、豆制品、深绿色蔬菜与适量坚果。', s:'中国营养学会'},
+  {r:'吃酱油会让伤口 / 疤痕变黑', f:'皮肤色素沉淀与紫外线照射、个人体质有关，与酱油摄入无关。', s:'皮肤科医学科普'},
+  {r:'维生素 C 能预防感冒', f:'维 C 不能预防普通感冒，仅可能轻微缩短病程，证据等级有限，不宜过量补充。', s:'Cochrane 系统综述'},
+  {r:'晚上吃水果 = 吃毒、果糖伤肝', f:'水果随时可吃，关键是控制总量与种类；正常摄入的果糖不会损伤肝脏。', s:'《中国居民膳食指南（2022）》'}
+];
+function getDailyRumor(){ const i=new Date().getDate()%WELLNESS_RUMORS.length; return WELLNESS_RUMORS[i]; }
+
+/* 节气/天气养生小贴士（依据经典，屏蔽无来源谣言） */
+function getWellnessTips(weatherText){
+  const now=new Date();
+  const m=now.getMonth()+1, d=now.getDate();
+  // 2026 年二十四节气关键日期（近似，满足日常提示即可；如需精确可后续接入天文计算或数据中枢）
+  const solarTerms=[
+    {name:'立春',m:2,d:4},{name:'雨水',m:2,d:18},{name:'惊蛰',m:3,d:5},{name:'春分',m:3,d:20},
+    {name:'清明',m:4,d:5},{name:'谷雨',m:4,d:20},{name:'立夏',m:5,d:5},{name:'小满',m:5,d:21},
+    {name:'芒种',m:6,d:5},{name:'夏至',m:6,d:21},{name:'小暑',m:7,d:7},{name:'大暑',m:7,d:22},
+    {name:'立秋',m:8,d:7},{name:'处暑',m:8,d:23},{name:'白露',m:9,d:7},{name:'秋分',m:9,d:23},
+    {name:'寒露',m:10,d:8},{name:'霜降',m:10,d:23},{name:'立冬',m:11,d:7},{name:'小雪',m:11,d:22},
+    {name:'大雪',m:12,d:7},{name:'冬至',m:12,d:21},{name:'小寒',m:1,d:5},{name:'大寒',m:1,d:20}
+  ];
+  let term=solarTerms[solarTerms.length-1];
+  for(let i=0;i<solarTerms.length;i++){ if(m<solarTerms[i].m || (m===solarTerms[i].m && d<solarTerms[i].d)){ term=solarTerms[(i-1+solarTerms.length)%solarTerms.length]; break; } if(i===solarTerms.length-1) term=solarTerms[i]; }
+  const tips={
+    '立春':{t:'立春阳气初生，宜早睡早起、舒展筋骨；饮食少酸多甘，可食韭菜、葱、香菜助阳气生发。',s:'《黄帝内经·素问》'},
+    '雨水':{t:'雨水湿渐重，注意健脾祛湿；少吃生冷油腻，可用山药、薏米、红豆煮粥。',s:'《黄帝内经·素问》《中医饮食营养学》'},
+    '惊蛰':{t:'惊蛰肝气旺，宜养肝明目、清淡饮食；保证睡眠，避免熬夜生内热。',s:'《黄帝内经·素问》'},
+    '春分':{t:'春分阴阳相半，饮食宜寒热均衡；多食时令蔬菜，适当户外晒太阳。',s:'《黄帝内经·素问》'},
+    '清明':{t:'清明气清景明，忌过食辛辣发物；可食荠菜、菠菜等清肝明目之品。',s:'《本草纲目》'},
+    '谷雨':{t:'谷雨湿气加重，防湿邪困脾；饮食宜清淡，少油腻，可饮绿茶、吃香椿。',s:'《黄帝内经·素问》'},
+    '立夏':{t:'立夏养心，宜静心安神；饮食增酸减苦，多吃番茄、山楂、酸奶，忌大汗后立即冲凉。',s:'《黄帝内经·素问》'},
+    '小满':{t:'小满湿热交蒸，注意防痱祛湿；饮食清淡，吃苦瓜、冬瓜、绿豆，忌生冷伤脾。',s:'《饮膳正要》'},
+    '芒种':{t:'芒种暑气始盛，宜午休、多饮水；饮食以清补为主，如鸭肉、丝瓜、荷叶粥。',s:'《黄帝内经·素问》'},
+    '夏至':{t:'夏至阳极阴生，忌过度贪凉；宜吃苦味食物清心火，保证子午觉。',s:'《黄帝内经·素问》'},
+    '小暑':{t:'小暑酷热，注意防暑补水；宜吃西瓜、黄瓜、绿豆汤，但脾胃虚寒者少食生冷。',s:'《中国居民膳食指南（2022）》'},
+    '大暑':{t:'大暑湿热最重，饮食宜清淡易消化；可食薏米、冬瓜、莲藕，避免长时间空调直吹。',s:'《中国居民膳食指南（2022）》'},
+    '立秋':{t:'立秋后阳气渐收、阴气渐长，饮食宜少辛增酸，多吃芝麻、蜂蜜、银耳、百合等柔润食物，避免燥热辛辣。',s:'《黄帝内经·素问》'},
+    '处暑':{t:'处暑秋燥渐显，宜早睡早起、收敛神气；多吃梨、百合、莲子、蜂蜜，缓解咽干舌燥。',s:'《黄帝内经·素问》'},
+    '白露':{t:'白露早晚凉、秋燥盛，注意护好口鼻与腹部；饮食滋阴润燥，可食梨、银耳、芝麻。',s:'《黄帝内经·素问》'},
+    '秋分':{t:'秋分阴阳平衡，宜早睡早起、适度运动；饮食温润，多吃白萝卜、山药、核桃。',s:'《黄帝内经·素问》'},
+    '寒露':{t:'寒露气温骤降，注意足部保暖；饮食温润补虚，可食板栗、红枣、桂圆、羊肉。',s:'《中医养生学》'},
+    '霜降':{t:'霜降寒气盛，宜早睡晚起、避寒就温；饮食可适量进补，吃萝卜、柿子、山药、牛肉。',s:'《黄帝内经·素问》'},
+    '立冬':{t:'立冬阳气潜藏，宜早睡晚起、避寒保暖；饮食温补，可食羊肉、核桃、黑芝麻、粥类。',s:'《黄帝内经·素问》'},
+    '小雪':{t:'小雪阴冷加重，注意关节与情绪保暖；多吃黑色食物如黑豆、黑米、黑芝麻。',s:'《中医养生学》'},
+    '大雪':{t:'大雪寒冷，宜减少剧烈出汗运动，早睡养藏；可食羊肉汤、红薯、萝卜暖身。',s:'《黄帝内经·素问》'},
+    '冬至':{t:'冬至阴极阳生，宜静养、护阳气；饮食温补，可食汤圆、饺子、羊肉，避免熬夜。',s:'《黄帝内经·素问》'},
+    '小寒':{t:'小寒寒邪最盛，注意头颈手脚保暖；饮食温热，可食生姜、红枣、桂圆、牛肉。',s:'《中医养生学》'},
+    '大寒':{t:'大寒养精蓄锐，不宜过度进补或大汗；饮食清淡温补，多食萝卜、白菜、鱼肉。',s:'《黄帝内经·素问》'}
+  };
+  const base = tips[term.name] || {t:'顺应四时，饮食有节，起居有常，不妄作劳。',s:'《黄帝内经·素问》'};
+  const weatherTips=[];
+  const wt=(weatherText||'').toLowerCase();
+  if(/rain|雨|drizzle|shower/.test(wt)) weatherTips.push('雨天湿重，可减少生冷瓜果，适当用红豆、薏米、山药等健脾祛湿。');
+  if(/hot|sunny|clear|晴|热/.test(wt)&&!/rain|雨/.test(wt)) weatherTips.push('天气炎热，出汗多，注意补充淡盐水或电解质，避免正午暴晒。');
+  if(/cloud|阴|overcast/.test(wt)) weatherTips.push('阴天光照不足，可适当增加室内活动，注意情绪调节。');
+  if(/snow|雪|cold|寒/.test(wt)) weatherTips.push('天气寒冷，注意头颈、手脚保暖，外出戴帽围巾。');
+  if(/humid|潮湿|湿度/.test(wt)||/湿度\s*\d+%/.test(weatherText)) weatherTips.push('空气湿度高，衣物宜勤换，室内保持通风，避免湿邪困脾。');
+  return { term:term.name, tip:base.t, source:base.s, weatherTips };
+}
+function renderWellness(){
+  const el=$('wellnessOut'); if(!el) return;
+  const city = ($('wxCity')&&$('wxCity').value)||'当地';
+  const wt = $('wxOut') ? $('wxOut').textContent : '';
+  const w = getWellnessTips(wt);
+  const rum = getDailyRumor();
+  el.innerHTML = `<div style="margin-bottom:6px"><b>当前节气 · ${w.term}</b></div>
+    <div style="margin-bottom:8px;line-height:1.7">${w.tip}</div>
+    <div class="stamp" style="font-size:11px;margin-bottom:10px">典籍 / 权威依据：${w.source}</div>
+    ${w.weatherTips.length ? `<div style="margin-bottom:10px"><b>${city}天气适配</b><ul style="margin:4px 0 0 18px">${w.weatherTips.map(t=>`<li>${t}</li>`).join('')}</ul></div>` : ''}
+    <div style="border-top:1px dashed var(--line);padding-top:8px;margin-top:4px">
+      <div style="color:#c0392b;font-weight:600;font-size:12.5px;margin-bottom:4px">⚠️ 今日辟谣</div>
+      <div style="font-size:12.5px;line-height:1.6"><b>谣言：</b>${rum.r}</div>
+      <div style="font-size:12.5px;line-height:1.6"><b>真相：</b>${rum.f}</div>
+      <div class="stamp" style="font-size:11px;margin-top:4px">来源：${rum.s}</div>
+    </div>
+    <div class="stamp" style="font-size:11px;margin-top:8px">内容仅供日常养生参考，不适请及时就医。</div>`;
+}
+
+function renderCivic(){
+  const el=$('civicList'); if(!el) return;
+  const list=(D.civic||[]).slice();
+  const city=($('wxCity')&&$('wxCity').value)||'';
+  const catColor={医保:'#3aa675',养老:'#c47f2e',社区:'#4a90d9'};
+  const match=x=>(x.city&&city&&city.indexOf(x.city)>=0)||(x.city&&/厦门|平潭/.test(x.city)&&/厦门|平潭/.test(city));
+  list.sort((a,b)=>(match(b)?1:0)-(match(a)?1:0));
+  if(!list.length){ el.innerHTML='<span class="stamp">暂无民生动态（可在 data.js 的 civic 中补充，或让我定期同步）</span>'; return; }
+  el.innerHTML = list.map(x=>{
+    const col=catColor[x.cat]||'var(--brand)';
+    const local=match(x)?' <span class="tag" style="background:'+col+';color:#fff">本地</span>':'';
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <span class="tag" style="background:${col};color:#fff">${x.cat}</span> <b>${x.title}</b>${local}
+      <div style="color:var(--sub);font-size:12.5px;margin-top:3px">${x.summary||''}</div>
+      <div class="stamp" style="font-size:11px">来源：${x.src||'—'} · ${x.date||''}</div>
+    </div>`;
+  }).join('') + `<div class="stamp" style="font-size:11px;margin-top:8px">数据更新于 ${D.civicUpdated||'—'} · 由数据中枢定期同步，具体以当地官方公告为准</div>`;
+}
+
+/* 录入即时目标进度条 */
+function updGoalBars(){
+  const w=+$('hWater').value||0, s=+$('hSleep').value||0;
+  $('gwBar').style.width=Math.min(100,Math.round(w/8*100))+'%'; $('gwTxt').textContent=w?`${w} / 8 杯`:'';
+  $('gsBar').style.width=Math.min(100,Math.round(s/7*100))+'%'; $('gsTxt').textContent=s?`${s} / 7 h`:'';
+}
+renderHealth();
+updGoalBars();
+renderCivic();
+
+/* ---------- 天气（GPS 定位驱动，失败回退网络位置/手动城市） ---------- */
+let GEO = LS.get('wb_geo', null);          // {lat, lon, city} 或 {manual:true, city}
+let GEO_DENIED = LS.get('wb_geo_denied', false);
+
+function setWxStatus(txt){ const e=$('wxStatus'); if(e) e.textContent=txt; }
+
+function wmoDesc(code){
+  const map={0:'晴',1:'大部晴朗',2:'多云',3:'阴天',45:'雾',48:'雾凇',
+    51:'毛毛雨',53:'中度毛毛雨',55:'大毛毛雨',61:'小雨',63:'中雨',65:'大雨',
+    71:'小雪',73:'中雪',75:'大雪',80:'小阵雨',81:'中阵雨',82:'强阵雨',
+    85:'小阵雪',86:'大阵雪',95:'雷暴',96:'雷暴伴小冰雹',99:'雷暴伴大冰雹'};
+  return map[code]||'多云';
+}
+
+function renderWxFromOpenMeteo(j, city){
+  const cur=j.current;
+  const tmp=Math.round(cur.temperature_2m);
+  const hum=cur.relative_humidity_2m;
+  const desc=wmoDesc(cur.weather_code);
+  const lo=Math.round(Math.min(...j.daily.temperature_2m_min));
+  const hi=Math.round(Math.max(...j.daily.temperature_2m_max));
+  const advice = tmp>=30?'高温注意防晒补水，轻薄透气衣物':tmp>=24?'短袖即可，备一把伞防阵雨':tmp>=18?'长袖+薄外套舒适出行':tmp>=10?'针织/卫衣加外套':'注意保暖，厚外套安排上';
+  const txt=`${city} ${desc} ${lo}~${hi}℃（现 ${tmp}℃）· 湿度${hum}% · ${advice}`;
+  if($('wxOut')) $('wxOut').textContent=txt;
+  if($('headerWx')) $('headerWx').innerHTML=`<span>🌤</span><b>${city}</b><span>${desc} ${tmp}℃</span>`;
+  if($('wxCity')) $('wxCity').value=city;
+  if(GEO && GEO.lat!=null) GEO.city=city;
+  if(GEO && GEO.lat!=null) LS.set('wb_geo', GEO);
+  renderWellness();
+  renderCivic();
+}
+
+function fetchOpenMeteoWeather(lat, lon, city, saveGeo){
+  setWxStatus('天气加载中…');
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+  fetch(url).then(r=>r.json()).then(j=>{
+    if(saveGeo && GEO){ GEO.lat=lat; GEO.lon=lon; GEO.city=city; LS.set('wb_geo', GEO); }
+    renderWxFromOpenMeteo(j, city);
+    setWxStatus('已更新 · '+new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit'}));
+  }).catch(()=>{ if($('wxOut')) $('wxOut').textContent='天气服务暂不可用（Open-Meteo 连接失败）'; setWxStatus('天气获取失败'); renderWellness(); });
+}
+
+/* 反向地理编码：多个免费源串行尝试，力求拿到中文城市名 */
+function reverseGeoCity(lat, lon, cb){
+  // 1) BigDataCloud 客户端接口（CORS 开放）
+  fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=zh`)
+    .then(r=>r.json()).then(d=>{
+      const city=d.city||d.locality||d.principalSubdivision||'';
+      if(city && city!=='Unknown'){ cb(city); return; }
+      throw new Error('no city from bdc');
+    }).catch(()=>{
+      // 2) Nominatim（浏览器 UA 自带，通常可用）
+      setTimeout(()=>{
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=zh`,{headers:{'Accept':'application/json'}})
+          .then(r=>r.json()).then(d=>{
+            const a=d.address||{};
+            const city=a.city||a.town||a.district||a.county||a.suburb||'';
+            if(city){ cb(city); return; }
+            throw new Error('no city from nominatim');
+          }).catch(()=> cb('当前位置'));
+      }, 600);
+    });
+}
+
+/* IP 粗略定位 → 天气（不依赖 wttr.in） */
+function ipFallback(){
+  setWxStatus('📍 未授权 GPS，按网络位置估算');
+  fetch('https://get.geojs.io/v1/ip/geo.json').then(r=>r.json()).then(d=>{
+    const lat=parseFloat(d.latitude), lon=parseFloat(d.longitude);
+    if(!isNaN(lat)&&!isNaN(lon)){ fetchOpenMeteoWeather(lat, lon, '当前位置(网络)', true); }
+    else throw new Error('ip no loc');
+  }).catch(()=>{ fetchOpenMeteoWeather(24.4798, 118.0894, '厦门(默认)', false); });
+}
+
+function locateAndLoad(){
+  setWxStatus('📍 定位中…');
+  if(!navigator.geolocation){ ipFallback(); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude, lon=pos.coords.longitude;
+    GEO={lat, lon, city:''}; LS.set('wb_geo', GEO); GEO_DENIED=false; LS.set('wb_geo_denied',false);
+    // 先按经纬度拿天气（快），同时解析城市名（慢）
+    fetchOpenMeteoWeather(lat, lon, '当前位置', false);
+    reverseGeoCity(lat, lon, city=>{
+      if(city && city!=='当前位置'){ GEO.city=city; LS.set('wb_geo', GEO); fetchOpenMeteoWeather(lat, lon, city, false); }
+    });
+  }, ()=>{
+    GEO_DENIED=true; LS.set('wb_geo_denied',true);
+    ipFallback();
+  }, {enableHighAccuracy:false, timeout:8000, maximumAge:600000});
+}
+
+function useMyLocation(){ GEO=null; LS.set('wb_geo',null); GEO_DENIED=false; LS.set('wb_geo_denied',false); locateAndLoad(); }
+
+/* 手动城市查询：先用 Open-Meteo Geocoding 搜中文/英文城市，失败再回退 wttr.in */
+function manualLoad(){
+  const city=($('wxCity')&&$('wxCity').value.trim())||'厦门';
+  setWxStatus('手动查询：'+city);
+  fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=zh&format=json`)
+    .then(r=>r.json()).then(d=>{
+      const res=d.results&&d.results[0];
+      if(res){ GEO={manual:true, city:res.name||city, lat:res.latitude, lon:res.longitude}; LS.set('wb_geo', GEO); fetchOpenMeteoWeather(res.latitude, res.longitude, res.name||city, false); }
+      else throw new Error('geocode no result');
+    }).catch(()=>{
+      // 回退 wttr.in（部分用户网络仍可访问）
+      setWxStatus('回退 wttr.in 查询：'+city);
+      fetch('https://wttr.in/'+encodeURIComponent(city)+'?format=j1').then(r=>r.json()).then(j=>{
+        const c=j.current_condition[0], t=j.weather[0];
+        const desc=c.lang_zh&&c.lang_zh[0]?c.lang_zh[0].value:c.weatherDesc[0].value;
+        const txt=`${city} ${desc} ${t.mintempC}~${t.maxtempC}℃（现 ${c.temp_C}℃）· 湿度${c.humidity}% · ${c.temp_C>=24?'短袖即可':'注意保暖'}`;
+        if($('wxOut')) $('wxOut').textContent=txt;
+        if($('headerWx')) $('headerWx').innerHTML=`<span>🌤</span><b>${city}</b><span>${desc} ${c.temp_C}℃</span>`;
+        setWxStatus('已更新 · '+new Date().toLocaleString('zh-CN',{hour:'2-digit',minute:'2-digit'}));
+        renderWellness(); renderCivic();
+      }).catch(()=>{ if($('wxOut')) $('wxOut').textContent='天气服务暂不可用（请检查网络或换个城市试试）'; setWxStatus('天气获取失败'); renderWellness(); });
+    });
+}
+
+function loadWeather(){
+  if(GEO && GEO.manual){ manualLoad(); }
+  else if(GEO && GEO.lat!=null){
+    if(GEO.city) fetchOpenMeteoWeather(GEO.lat, GEO.lon, GEO.city, false);
+    else {
+      fetchOpenMeteoWeather(GEO.lat, GEO.lon, '当前位置', false);
+      reverseGeoCity(GEO.lat, GEO.lon, city=>{ if(city!=='当前位置'){ GEO.city=city; LS.set('wb_geo', GEO); fetchOpenMeteoWeather(GEO.lat, GEO.lon, city, false); } });
+    }
+  }
+  else if(GEO_DENIED){ ipFallback(); }
+  else locateAndLoad();
+}
+loadWeather();
+
+/* ---------- 模块四：科研 ---------- */
+let grantFilter='all';
+function grantStatusMap(){return LS.get('wb_grant_status',{})}
+function setGrantStatus(title,val){const m=grantStatusMap();m[title]=val;LS.set('wb_grant_status',m);renderGrants();}
+function filterGrants(f,el){grantFilter=f;document.querySelectorAll('#grantTabs .tb-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderGrants();}
+function renderGrants(){
+  const r=D.research||{}, g=(r.grants||[]), m=grantStatusMap();
+  const open=g.filter(x=>{const st=m[x.title]||'想申报';return st==='想申报'||st==='已收藏';}).length;
+  $('grantCount').textContent=`待跟进 ${open} 条`;
+  if(!g.length){$('grants').innerHTML='';$('grantsEmpty').style.display='block';return;}
+  $('grantsEmpty').style.display='none';
+  const vis=g.filter(x=>{const st=m[x.title]||'想申报';if(grantFilter==='todo')return st==='想申报';if(grantFilter==='star')return st==='已收藏';return true;});
+  const opt=s=>`<option ${s==='想申报'?'selected':''}>想申报</option><option ${s==='已收藏'?'selected':''}>已收藏</option><option ${s==='已提交'?'selected':''}>已提交</option><option ${s==='已立项'?'selected':''}>已立项</option>`;
+  $('grants').innerHTML=vis.map(x=>{
+    const st=m[x.title]||'想申报', dl=new Date(x.deadline)-new Date(), days=Math.ceil(dl/864e5);
+    const dCls=days<0?'due-soon':(days<14?'due-soon':'');
+    const dTxt=days>=0?`${x.deadline}（剩 ${days} 天）`:`${x.deadline}（已截止）`;
+    const tj=`帮我梳理《${x.title}》的申报书框架与核心要点，方向：${x.field||''}`;
+    const tt=x.title.replace(/'/g,"\\'");
+    return `<tr><td><b>${x.title}</b></td><td>${x.org}</td><td class="${dCls}">${dTxt}</td>
+      <td><select onchange="setGrantStatus('${tt}',this.value)" style="padding:3px 6px;font-size:12px">${opt(st)}</select></td>
+      <td><button class="btn sm ghost" onclick="copyCmd('${tj.replace(/'/g,"\\'")}')">复制提示</button>${x.link?` <a href="${x.link}" target="_blank">链接</a>`:''}</td></tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty">该筛选下暂无课题</td></tr>';
+}
+(function(){
+  const r = D.research||{};
+  $('resStamp').textContent = D.updatedAt&&D.updatedAt.research ? '· 更新于 '+D.updatedAt.research : '';
+  renderGrants();
+  $('papers').innerHTML=(r.papers||[]).map(p=>{
+    const tj=`帮我基于论文《${p.title}》整理文献综述要点与可引用的观点`;
+    return `<div style="margin-bottom:10px;font-size:13px"><b>${p.title}</b><br><span style="color:var(--sub)">${p.authors||''} · ${p.venue||''}</span>${p.link?` · <a href="${p.link}" target="_blank">摘要</a>`:''}<br><button class="btn sm ghost" style="margin-top:4px" onclick="copyCmd('${tj.replace(/'/g,"\\'")}')">复制综述提示</button></div>`;
+  }).join('')||'<div class="empty">等待每周一扫描</div>';
+  $('reports').innerHTML=(r.reports||[]).map(p=>`<div style="margin-bottom:10px;font-size:13px"><b>${p.title}</b><br><span style="color:var(--sub)">${p.org||''}</span>${p.summary?`<br>${p.summary}`:''}</div>`).join('')||'<div class="empty">等待每周一扫描</div>';
+})();
+
+/* ---------- 模块五：任务 ---------- */
+let dragId=null, editId=null;
+/* 任务：云端(GitHub)实时读写（多设备共享）；降级走本机 localStorage + 同步中心 */
+
+function getLocalTasks(){return LS.get('wb_tasks',[])}
+function getTasks(){
+  if(CLOUD.ok) return (CLOUD_DATA&&CLOUD_DATA.tasks)||D.tasks||[];
+  const cloud=(D.tasks||[]).map(t=>({...t,_src:'cloud'}));
+  const local=getLocalTasks().map(t=>({...t,_src:'local'}));
+  return cloud.concat(local);
+}
+function setLocalTasks(t){LS.set('wb_tasks',t);renderTasks()}
+function addTask(){
+  const d=$('tDesc').value.trim(); if(!d)return;
+  const obj={desc:d,due:$('tDue').value||'',pri:$('tPri').value,note:$('tNote').value.trim(),st:'todo'};
+  $('tDesc').value='';$('tDue').value='';$('tNote').value='';
+  if(CLOUD.ok){
+    cloudUpsertTask(obj, editId==null?undefined:editId).then(()=>{editId=null;$('tAddBtn').textContent='添加';});
+  } else {
+    let t=getLocalTasks();
+    if(editId){const i=t.findIndex(x=>x.id===editId);if(i>=0)t[i]={...t[i],...obj};editId=null;$('tAddBtn').textContent='添加';}
+    else t.push({id:Date.now(),...obj});
+    setLocalTasks(t);
+  }
+}
+function editTask(key){
+  if(CLOUD.ok){
+    const t=(CLOUD_DATA.tasks||[]).find(x=>x.id===key); if(!t)return;
+    editId=key; $('tDesc').value=t.desc;$('tDue').value=t.due||'';$('tPri').value=t.pri;$('tNote').value=t.note||'';$('tAddBtn').textContent='保存修改';$('tDesc').focus();
+  } else {
+    const t=getLocalTasks().find(x=>x.id===key);if(!t){return;}editId=key;$('tDesc').value=t.desc;$('tDue').value=t.due||'';$('tPri').value=t.pri;$('tNote').value=t.note||'';$('tAddBtn').textContent='保存修改';$('tDesc').focus();
+  }
+}
+function moveTask(key,st){
+  if(CLOUD.ok){ const t=(CLOUD_DATA.tasks||[]).find(x=>x.id===key); if(!t)return; cloudUpsertTask({...t,st}, key); }
+  else { let t=getLocalTasks().map(x=>x.id===key?{...x,st}:x); setLocalTasks(t); }
+}
+function delTask(key){
+  if(CLOUD.ok){
+    const data=CLOUD_DATA||{tasks:[]}; data.tasks=(data.tasks||[]).filter(x=>x.id!==key); CLOUD_DATA=data; D.tasks=data.tasks;
+    ghPut(data).then(()=>renderTasks()).catch(e=>console.warn('delTask',e));
+  } else { setLocalTasks(getLocalTasks().filter(x=>x.id!==key)); }
+}
+function syncTasks(){
+  if(CLOUD.ok){ alert('已接入云端，任务实时同步，无需手动同步 ☁️'); return; }
+  const t=getLocalTasks();
+  if(!t.length){alert('本机暂无任务可同步');return;}
+  const lines=t.map(x=>`- ${x.desc}｜截止:${x.due||'无'}｜优先级:${x.pri}｜状态:${x.st}｜备注:${x.note||''}`).join('\n');
+  const txt='【同步任务到工作台数据中枢】请帮我把以下任务合并进 data.js 的 WB_DATA.tasks（保留现有云端任务、按 desc+due 去重）：\n'+lines;
+  navigator.clipboard.writeText(txt).then(()=>alert('已复制 '+t.length+' 条任务同步指令\n发给我即可上云共享 + 让自动化接管逾期提醒'));
+}
+function renderFocus(){
+  const t=getTasks(), now=new Date(), soon=new Date(Date.now()+2*864e5);
+  const items=t.filter(x=>x.st!=='done'&&((x.due&&new Date(x.due)<=soon)||x.st==='doing'))
+    .sort((a,b)=>(a.due?new Date(a.due):9e9)-(b.due?new Date(b.due):9e9));
+  $('focusList').innerHTML= items.length? items.map(x=>{
+    const overdue=x.due&&new Date(x.due)<now;
+    return `<div class="disc" style="border-bottom:1px dashed var(--line)"><span class="${overdue?'due-soon':''}">${x.st==='doing'?'🔄':'📌'} ${x.desc}${x.due?` · 📅 ${x.due}`:''}${overdue?' ⚠️逾期':''}${x._src==='cloud'?' <span class="stamp">☁️云端</span>':''}${x.warn?' <span class="stamp" style="background:var(--red);color:#fff">'+x.warn+'</span>':''}</span></div>`;
+  }).join('') : '<div class="empty" style="padding:12px">暂无临近任务，节奏不错 👍</div>';
+  updateSyncBadge();
+}
+function renderTasks(){
+  const t=getTasks(), soon=new Date(Date.now()+864e5);
+  ['todo','doing','done'].forEach(st=>{
+    const list=t.filter(x=>x.st===st);
+    document.querySelector(`.kcol[data-st="${st}"] .kbody`).innerHTML=list.map(x=>{
+      const key = x.id;
+      const ops = (st!=='todo'?`<button class="btn sm ghost" onclick="moveTask(${key},'${st==='doing'?'todo':'doing'}')">◀</button>`:'')+(st!=='done'?`<button class="btn sm ghost" onclick="moveTask(${key},'${st==='todo'?'doing':'done'}')">▶</button>`:'')+`<button class="btn sm ghost" onclick="editTask(${key})">编辑</button><button class="btn sm ghost" onclick="delTask(${key})">删</button>`;
+      return `<div class="tcard p-${x.pri} ${st==='done'?'done':''}" draggable="true" ondragstart="dragId='${key}'">
+        <div class="tt">${x.desc}${x._src==='cloud'&&!CLOUD.ok?' <span class="stamp">☁️</span>':''}</div>
+        <div class="meta"><span class="badge b-${x.pri}">${x.pri==='red'?'红':x.pri==='yellow'?'黄':'蓝'}</span>
+        ${x.due?`<span class="${new Date(x.due)<soon&&st!=='done'?'due-soon':''}">📅 ${x.due}</span>`:''}
+        ${x.note?`<span>📝 ${x.note}</span>`:''}
+        ${x.warn?`<span class="stamp" style="background:var(--red);color:#fff">${x.warn}</span>`:''}</div>
+        <div class="ops">${ops}</div>
+      </div>`;
+    }).join('')||'<div class="empty" style="padding:12px">空</div>';
+  });
+  $('cTodo').textContent=t.filter(x=>x.st==='todo').length;
+  $('cDoing').textContent=t.filter(x=>x.st==='doing').length;
+  $('cDone').textContent=t.filter(x=>x.st==='done').length;
+  const rate=t.length?Math.round(t.filter(x=>x.st==='done').length/t.length*100):0;
+  $('rateBar').style.width=rate+'%'; $('rateTxt').textContent=`${rate}%（${t.filter(x=>x.st==='done').length}/${t.length}）`;
+  renderFocus();
+}
+document.querySelectorAll('.kcol').forEach(c=>{
+  c.ondragover=e=>{e.preventDefault();c.classList.add('dragover')};
+  c.ondragleave=()=>c.classList.remove('dragover');
+  c.ondrop=e=>{e.preventDefault();c.classList.remove('dragover');if(dragId)moveTask(dragId,c.dataset.st);dragId=null;};
+});
+renderTasks();
+
+/* ---------- 模块六：精进 + 打卡 ---------- */
+(function(){
+  const d = D.daily||{};
+  $('dailyStamp').textContent = d.date ? '· 更新于 '+d.date : '· 等待每日 8:00 自动化首次更新';
+  $('morningTag').textContent = d.date ? d.date : '';
+  /* 早安播报：天气 + 金句 */
+  const w = d.weather||{};
+  $('wxBox').innerHTML = w.city
+    ? `<b>📍 ${w.city} · ${w.date||d.date||''}</b><br>${w.temp||''}<br>${w.desc||''}${w.aqi?('<br>空气质量：'+w.aqi):''}${w.advice?('<br><b style="color:var(--brand)">💡 建议：</b>'+w.advice):''}`
+    : '<div class="empty">天气数据等待每日 8:00 自动化更新</div>';
+  $('qBox').innerHTML = d.quote
+    ? `<div style="border-left:3px solid var(--brand);padding-left:12px;font-size:14px;line-height:1.9">“${d.quote.text}”<br><span style="color:var(--sub)">—— ${d.quote.author}</span></div>`
+    : '';
+  const notes=LS.get('wb_news_note',{});
+  $('news').innerHTML=(d.news||[]).map(n=>{
+    const nt=n.title.replace(/"/g,'&quot;');
+    return `<div style="margin-bottom:12px;font-size:13px"><span class="badge b-blue">${n.field||''}</span> <b>${n.title}</b><br><span style="color:var(--sub)">${n.source||''}</span><br>${n.digest||''}${n.link?` <a href="${n.link}" target="_blank">阅读原文</a>`:''}<br><details style="margin-top:4px"><summary style="cursor:pointer;color:var(--brand);font-size:12px">📝 记笔记</summary><textarea data-ntitle="${nt}" onblur="saveNewsNote(this)" placeholder="读后启发、可引用的观点…" style="width:100%;min-height:48px;margin-top:6px">${notes[n.title]||''}</textarea></details></div>`;
+  }).join('')||'<div class="empty">明早 8 点自动推送 3 篇深度阅读</div>';
+  function dayOfYear(dt){
+    const start=new Date(dt.getFullYear(),0,0);
+    return Math.floor((dt-start)/86400000);
+  }
+  const today=new Date(), dow=today.getDay(), doy=dayOfYear(today);
+  let qbHtml='';
+  if(dow===0){
+    const qs=d.quotes||[]; const q=qs[doy%qs.length];
+    qbHtml=q?`<div class="qb-card"><div class="qb-header"><span class="qb-ico">💬</span><div><div class="qb-title">周日金句</div><div class="qb-meta">每周日 · 收束一周，留一句慢思考</div></div></div><div class="qb-quote">“${q.text}”</div><div class="qb-source">—— ${q.author}</div><div class="qb-section"><b>💡 今日思考</b><p>把这句话作为今天备课或与学生互动的一个灵感起点：哪些瞬间可以用它来回应学生、推动讨论或调整自己的节奏？</p></div></div>`:'<div class="empty">周日金句待补充</div>';
+  }else if([1,3,5].includes(dow)){
+    const bs=d.books||[]; const b=bs[doy%bs.length];
+    qbHtml=b?`<div class="qb-card">
+      <div class="qb-header"><span class="qb-ico">📚</span><div><div class="qb-title">《${b.title}》</div><div class="qb-meta">${b.author} · 豆瓣 ${b.douban}</div></div></div>
+      <div class="qb-summary">${b.summary||''}</div>
+      <div class="qb-tags">${(b.scene||'').split(/ · /).map(t=>'<span>'+t+'</span>').join('')}</div>
+      <div class="qb-section"><b>📝 推荐语</b><p>${b.reason||''}</p></div>
+      <div class="qb-section"><b>🎯 适合场景</b><p>${b.scene||''}</p></div>
+    </div>`:'<div class="empty">书单待补充</div>';
+  }else{
+    const ms=d.movies||[]; const m=ms[doy%ms.length];
+    qbHtml=m?`<div class="qb-card">
+      <div class="qb-header"><span class="qb-ico">🎬</span><div><div class="qb-title">${m.title}</div><div class="qb-meta">${m.year} · ${m.director} · 豆瓣 ${m.douban||'-'}</div></div></div>
+      <div class="qb-summary">${m.summary||''}</div>
+      <div class="qb-tags">${(m.tags||'').split(/\s*\/\s*/).map(t=>'<span>'+t+'</span>').join('')}</div>
+      <div class="qb-section"><b>📝 推荐语</b><p>${m.reason||''}</p></div>
+      <div class="qb-section"><b>🎯 适合场景</b><p>${m.scene||''}</p></div>
+    </div>`:'<div class="empty">影单待补充</div>';
+  }
+  $('quoteBook').innerHTML=qbHtml;
+  const sp=d.ielts&&d.ielts.speaking;
+  $('ieltsSp').innerHTML=sp?`<b>${sp.topic}</b><br><br><u>答题思路</u><br>${(sp.hints||[]).map((h,i)=>`${i+1}. ${h}`).join('<br>')}<br><br><u>高分示范</u><br><span style="color:var(--sub)">${sp.sample||''}</span>`:'<div class="empty">每日一题，明早更新</div>';
+  const rd=d.ielts&&d.ielts.reading;
+  $('ieltsRd').innerHTML=rd?`<b>${rd.title}</b><br>${rd.passage||''}<br><br>${rd.questions||''}<br><br><u>答案解析</u><br><span style="color:var(--sub)">${rd.answers||''}</span>`:'<div class="empty">每日一篇，明早更新</div>';
+  $('vocab').innerHTML=(d.vocab||[]).map(v=>`<div class="vitem"><b>${v.word}</b> <span style="color:var(--sub)">${v.pos||''} ${v.meaning||''}</span><br>✍️ ${v.example||''}</div>`).join('')||'<div class="empty" style="grid-column:1/-1">每日 10 个雅思核心词，明早更新</div>';
+})();
+
+/* 专注番茄钟（时长可自定义 + 倒计时结束响铃提醒） */
+let pomoCfgMin=LS.get('wb_pomo_cfg',{min:25}).min||25;   // 用户设定的闹钟时长（分钟）
+let pomoLeft=pomoCfgMin*60, pomoTimer=null, pomoRun=false, pomoAC=null;
+const POMO_TITLE=document.title;
+function pomoFmt(s){const m=Math.floor(s/60),ss=s%60;return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+function pomoRender(){$('focusTime').textContent=pomoFmt(pomoLeft);$('pomoRing').textContent=pomoFmt(pomoLeft);}
+function pomoMsg(t){const el=$('pomoMsg');if(el)el.textContent=t||'';}
+function pomoAudioInit(){ try{ if(!pomoAC){const AC=window.AudioContext||window.webkitAudioContext; if(AC)pomoAC=new AC();} if(pomoAC&&pomoAC.state==='suspended')pomoAC.resume(); }catch(e){} }
+function pomoStart(){if(pomoRun)return;if(pomoLeft<=0)pomoLeft=pomoCfgMin*60;pomoRun=true;pomoMsg('');pomoAudioInit();pomoTimer=setInterval(()=>{if(pomoLeft>0){pomoLeft--;pomoRender();if(pomoLeft===0)pomoDone();}},1000);}
+function pomoPause(){pomoRun=false;clearInterval(pomoTimer);}
+function pomoReset(){pomoPause();pomoLeft=pomoCfgMin*60;pomoRender();pomoMsg('');document.title=POMO_TITLE;}
+function pomoSet(m){const inp=$('pomoMin');if(inp)inp.value=m;pomoApply();}
+function pomoApply(){
+  const inp=$('pomoMin'); let m=parseInt(inp&&inp.value,10);
+  if(!m||m<1)m=1; if(m>180)m=180; if(inp)inp.value=m;
+  pomoCfgMin=m; LS.set('wb_pomo_cfg',{min:m});
+  pomoPause(); pomoLeft=m*60; pomoRender(); pomoMsg('已设定 '+m+' 分钟'); document.title=POMO_TITLE;
+}
+function pomoBellToggle(cb){LS.set('wb_pomo_bell',!!(cb&&cb.checked));}
+function pomoBeep(){
+  try{
+    if(!pomoAC){const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return; pomoAC=new AC();}
+    if(pomoAC.state==='suspended')pomoAC.resume();
+    const ctx=pomoAC, t=ctx.currentTime;
+    const beep=(t0,freq)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.35,t0+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t0+0.28);o.start(t0);o.stop(t0+0.3);};
+    beep(t,880); beep(t+0.34,1108); beep(t+0.68,880);
+  }catch(e){}
+}
+function pomoDone(){
+  pomoPause();
+  const ck=LS.get('wb_pomo',{}),t=today();ck[t]=(ck[t]||0)+pomoCfgMin;LS.set('wb_pomo',ck);
+  pomoLeft=pomoCfgMin*60;pomoRender();renderPomoStat();
+  pomoMsg('⏰ 专注时间到！起身活动一下，喝口水吧～');
+  document.title='⏰ 番茄钟提醒！';
+  setTimeout(()=>{document.title=POMO_TITLE;},6000);
+  if(LS.get('wb_pomo_bell',true)) pomoBeep();
+  try{
+    if('Notification' in window && Notification.permission==='granted'){new Notification('⏰ 番茄钟时间到',{body:'专注 '+pomoCfgMin+' 分钟已完成，休息一下吧～'});}
+    else if('Notification' in window && Notification.permission!=='denied'){Notification.requestPermission();}
+  }catch(e){}
+}
+function renderPomoStat(){const ck=LS.get('wb_pomo',{}),m=ck[today()]||0;$('pomoStat').textContent=`今日已专注 ${m} 分钟`;}
+function saveNewsNote(el){const t=el.dataset.ntitle,v=el.value.trim(),m=LS.get('wb_news_note',{});if(v)m[t]=v;else delete m[t];LS.set('wb_news_note',m);}
+/* 初始化番茄钟：读取已保存时长 + 提醒开关 */
+(function(){const ic=LS.get('wb_pomo_cfg',{min:25});pomoCfgMin=ic.min||25;const inp=$('pomoMin');if(inp)inp.value=pomoCfgMin;const cb=$('pomoBell');if(cb)cb.checked=LS.get('wb_pomo_bell',true);pomoLeft=pomoCfgMin*60;pomoRender();renderPomoStat();})();
+
+/* 打卡 */
+function punch(btn){
+  const p=btn.dataset.p, t=today();
+  const ck=LS.get('wb_checkin',{});
+  ck[t]=ck[t]||{};
+  if(ck[t][p]) delete ck[t][p]; else ck[t][p]=new Date().toTimeString().slice(0,5);
+  LS.set('wb_checkin',ck); renderCal();
+}
+function renderCal(){
+  const ck=LS.get('wb_checkin',{}), t=today();
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.toggle('on',!!(ck[t]&&ck[t][b.dataset.p])));
+  /* 连续天数 */
+  let streak=0, d=new Date();
+  if(!(ck[t]&&Object.keys(ck[t]).length)) d.setDate(d.getDate()-1);
+  while(ck[d.toISOString().slice(0,10)]&&Object.keys(ck[d.toISOString().slice(0,10)]).length){streak++;d.setDate(d.getDate()-1);}
+  $('streakTxt').textContent=streak?`🔥 已连续打卡 ${streak} 天`:'今天还没打卡';
+  /* 月历 */
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  const first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  const colors={'阅读':'#2f5575','单词':'#b07a45','运动':'#3f6b5a','早睡':'#7b61c9'};
+  let html='<div style="margin-top:10px;font-size:12px;font-weight:600">'+y+' 年 '+(m+1)+' 月打卡日历</div><div class="cal">';
+  ['日','一','二','三','四','五','六'].forEach(w=>html+=`<div class="d head">${w}</div>`);
+  for(let i=0;i<first;i++) html+='<div class="d" style="background:none"></div>';
+  for(let dd=1;dd<=days;dd++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+    const hits=ck[ds]?Object.keys(ck[ds]):[];
+    html+=`<div class="d ${hits.length?'hit':''} ${ds===t?'today':''}">${dd}<div class="dots">${hits.map(h=>`<i style="background:${colors[h]}"></i>`).join('')}</div></div>`;
+  }
+  $('calBox').innerHTML=html+'</div>';
+}
+renderCal();
+initCloud(); refreshSyncCard(); loadCloudData();
+</script>
+<input type="file" id="imgImportInput" accept="image/*" style="display:none" onchange="handleImgImport(this.files[0])">
+<div id="ocrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--panel);border-radius:14px;max-width:1080px;width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+      <h3 style="font-size:16px">📷 从截图导入持仓</h3>
+      <button class="btn sm ghost" onclick="closeOcrModal()">✕ 关闭</button>
+    </div>
+    <div class="ocr-body">
+      <div class="ocr-left">
+        <div class="ocr-imgwrap" id="ocrImgWrap">
+          <img id="ocrImg" alt="持仓截图" onclick="zoomOcrImg()">
+        </div>
+        <p class="hint" style="margin-top:8px">点图片可放大。对照右侧表格核对或补录。</p>
+      </div>
+      <div class="ocr-right">
+        <div id="ocrBanner" class="ocr-banner"></div>
+        <div id="ocrPreview"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn sm ghost" onclick="addOcrRow()">＋ 加一行</button>
+          <button class="btn sm ghost" onclick="togglePasteBox()">📋 粘贴文本解析</button>
+          <button class="btn sm ghost" onclick="retryOcr()" id="ocrRetryBtn" style="display:none">🔁 重试识别</button>
+          <button class="btn sm ghost" onclick="toggleOcrRaw()">原始文字</button>
+        </div>
+        <div id="ocrPasteBox" style="display:none;margin-top:10px">
+          <textarea id="ocrPasteTxt" rows="5" placeholder="把券商 APP 里复制的持仓文本整段粘进来，每只股票一行，例如：&#10;中际旭创 300308 成本17.60 现价21.35 500股" style="width:100%;font-size:12px;padding:8px;border:1px solid var(--line);border-radius:8px;resize:vertical"></textarea>
+          <button class="btn sm" style="margin-top:6px" onclick="parsePasted()">解析并填入表格</button>
+        </div>
+        <div id="ocrRawBox" style="display:none;margin-top:10px;padding:10px;background:#f7f8fb;border-radius:8px;font-size:12px;color:var(--sub);white-space:pre-wrap;max-height:160px;overflow:auto"></div>
+      </div>
+    </div>
+    <div style="padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;align-items:center">
+      <span id="ocrStatus" class="hint" style="margin-right:auto"></span>
+      <button class="btn sm" onclick="confirmOcrImport()">确认导入</button>
+    </div>
+  </div>
+</div>
+<div id="imgZoom" onclick="this.style.display='none'"><img id="imgZoomPic" alt="放大预览"></div>
+<script>
+/* ===== 股票工作台增强：参数化 / 题材分组 / 批量导入（第二个脚本，重写部分全局函数） ===== */
+var PARAMS = { priceMax:20, mcapMax:100, vbMin:3, mainMin:1, lbMin:2, w_zt:60, w_lb:15, w_macd:20, w_ma:15, w_main:12, w_vol:8 };
+function readParams(){
+  const g=id=>parseFloat(document.getElementById(id).value);
+  if(document.getElementById('p_price')) PARAMS.priceMax=g('p_price');
+  if(document.getElementById('p_mcap')) PARAMS.mcapMax=g('p_mcap');
+  if(document.getElementById('p_vb')) PARAMS.vbMin=g('p_vb');
+  if(document.getElementById('p_main')) PARAMS.mainMin=g('p_main');
+  if(document.getElementById('p_lb')) PARAMS.lbMin=g('p_lb');
+}
+function onParamChange(){
+  readParams();
+  const e=document.getElementById('tdxParamEcho');
+  if(e) e.innerHTML = `低价上限 <b>${PARAMS.priceMax}</b>元 · 市值上限 <b>${PARAMS.mcapMax}</b>亿 · 量比≥<b>${PARAMS.vbMin}</b> · 主力净≥<b>${PARAMS.mainMin}</b>亿 · 连板≥<b>${PARAMS.lbMin}</b>`;
+  if(typeof renderScreen==='function') renderScreen();
+}
+/* 重写 stratOf：读取 PARAMS 阈值（保持与原签名一致） */
+function stratOf(x){
+  const t=[];
+  const lim=limitPct(x.code);
+  if(x.chg!=null&&x.chg>=lim-0.5)t.push('zt');
+  else if(x.chg!=null&&x.chg>=5&&x.chg<lim-0.5)t.push('strong');
+  if(x.vb!=null&&x.vb>=PARAMS.vbMin&&x.chg>0)t.push('vol');
+  if(x.main!=null&&x.main>PARAMS.mainMin*1e8)t.push('main');
+  if(x.price!=null&&x.price<PARAMS.priceMax&&x.mcap!=null&&x.mcap<PARAMS.mcapMax*1e8)t.push('low');
+  const tech=screenTech[x.code];
+  if(tech&&tech.enough){
+    if(tech.goldenCross)t.push('macd');
+    if(tech.multiMA)t.push('ma');
+    if(tech.lianban>=PARAMS.lbMin)t.push('lb');
+  }
+  return t;
+}
+function strength(x){
+  let s=0; const tech=screenTech[x.code]; const t=stratOf(x);
+  if(t.includes('zt')) s+=PARAMS.w_zt;
+  if(tech&&tech.enough){
+    if(tech.lianban>=2) s+=tech.lianban*PARAMS.w_lb;
+    if(tech.goldenCross) s+=PARAMS.w_macd;
+    if(tech.multiMA) s+=PARAMS.w_ma;
+  }
+  if(t.includes('main')) s+=PARAMS.w_main;
+  if(t.includes('vol')) s+=PARAMS.w_vol;
+  if(x.chg!=null) s+=Math.min(Math.max(x.chg,0),20)*0.5;
+  return Math.round(s*10)/10;
+}
+/* ---- 题材分组 ---- */
+function watchTags(){ return LS.get('wb_watch_tags',{}); }
+function setWatchTag(code,tag){ const m=watchTags(); if(tag) m[code]=tag; else delete m[code]; LS.set('wb_watch_tags',m); renderWatch(); }
+function applyWatchTag(){
+  const v=document.getElementById('wlTag').value.trim();
+  const msg=document.getElementById('wlTagMsg');
+  if(!v){ msg.textContent='请输入 代码/名称,板块'; return; }
+  const parts=v.split(/[,，]/).map(s=>s.trim());
+  if(parts.length<2){ msg.textContent='格式：代码/名称,板块'; return; }
+  const a=parts[0], b=parts[1];
+  const code=/^\d{6}$/.test(a)?a:codeByName(a);
+  if(!code){ msg.textContent='找不到代码：'+a; return; }
+  setWatchTag(code,b);
+  document.getElementById('wlTag').value='';
+  msg.textContent='已打标 '+codeName(code)+' → '+b;
+}
+function promptTag(i){ const w=myWatch()[i]; if(!w)return; const t=prompt('为 '+w.name+' 设置题材分组（留空清除）：', watchTags()[w.code]||''); setWatchTag(w.code,(t||'').trim()); }
+/* 重写 renderWatch：支持题材分组折叠 */
+function renderWatch(){
+  const all=myWatch();
+  const held=new Set(myHold().map(h=>h.code));
+  const tags=watchTags();
+  let view=all.map((w,i)=>({w,i}));
+  if(watchFilter==='hold') view=view.filter(x=>held.has(x.w.code));
+  else if(watchFilter==='watch') view=view.filter(x=>!held.has(x.w.code));
+  if(watchSearch){ const k=watchSearch.trim().toLowerCase(); if(k) view=view.filter(x=>(x.w.name&&x.w.name.toLowerCase().includes(k))||(x.w.code&&x.w.code.includes(k))); }
+  const rowOf=({w,i})=>{
+    const q=(typeof poolQuotes!=='undefined'&&poolQuotes[w.code])||null;
+    const price=q&&q[3]&&parseFloat(q[3])>0?parseFloat(q[3]):w.price;
+    const chgV=q&&q[32]!=null&&q[32]!==''?parseFloat(q[32]):w.changePct;
+    const col=chgV==null?'':(chgV>=0?'up':'down');
+    const chg=chgV==null?'—':`<b class="${col}">${chgV>=0?'+':''}${chgV}%</b>`;
+    const pr=price==null?'—':`¥${price}`;
+    const heldTag=held.has(w.code)?`<span class="tag" style="color:#fff;background:#d43d3d;border-color:#d43d3d">已持仓</span> `:'';
+    const grpTag=tags[w.code]?`<span class="tag" style="color:var(--brand);border-color:var(--brand)">🏷 ${tags[w.code]}</span> `:'';
+    return `<tr><td>${heldTag}${grpTag}<b>${w.name}</b></td><td>${w.code}</td><td>${pr}</td><td>${chg}</td><td><button class="btn sm ghost" onclick="promptTag(${i})">🏷</button> <button class="btn sm ghost" onclick="toHold(${i})">转持仓</button> <button class="btn sm ghost" onclick="delWatch(${i})">删</button></td></tr>`;
+  };
+  const total=all.length;
+  if(!total){ $('watchlist').innerHTML='<div class="empty">自选股为空 · 用下方表单或指令添加</div>'; return; }
+  if(!view.length){ $('watchlist').innerHTML='<div class="empty">当前筛选条件下没有自选股</div>'; return; }
+  const groups={}; view.forEach(x=>{ const g=tags[x.w.code]||'未分组'; (groups[g]=groups[g]||[]).push(x); });
+  const order=Object.keys(groups).sort((a,b)=>(a==='未分组'?1:0)-(b==='未分组'?1:0));
+  let html='';
+  order.forEach(g=>{ html+=`<tr><td colspan="5" style="background:var(--bg);font-weight:700;color:var(--brand);padding:6px 10px">🏷 ${g}（${groups[g].length}）</td></tr>`+groups[g].map(rowOf).join(''); });
+  const filterNote=watchFilter==='hold'?'（已持仓）':watchFilter==='watch'?'（仅观察）':'';
+  $('watchlist').innerHTML=`<table class="tb"><tbody>${html}</tbody></table><p class="hint" style="margin-top:8px">共 ${total} 只 · 显示 ${view.length} 只${filterNote} · 价格随「🔄 刷新实时行情」更新</p>`;
+}
+/* 初始化增强 UI */
+function initEnhance(){
+  readParams(); onParamChange();
+  const e=document.getElementById('tdxParamEcho');
+  if(e) e.innerHTML=`低价上限 <b>${PARAMS.priceMax}</b>元 · 市值上限 <b>${PARAMS.mcapMax}</b>亿 · 量比≥<b>${PARAMS.vbMin}</b> · 主力净≥<b>${PARAMS.mainMin}</b>亿 · 连板≥<b>${PARAMS.lbMin}</b>`;
+  renderWatch();
+}
+if(document.readyState!=='loading') initEnhance(); else document.addEventListener('DOMContentLoaded',initEnhance);
+</script>
+<div id="bulkModal" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,23,42,.5);z-index:80;align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(560px,94vw);max-height:88vh;overflow:auto;background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 18px 50px rgba(0,0,0,.28)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <b style="font-size:15px;color:#1a2b6b">批量导入股票</b>
+      <button class="btn sm ghost" onclick="closeBulk()">✕ 关闭</button>
+    </div>
+    <p style="font-size:12px;color:#667;line-height:1.7;margin:0 0 10px">每行一只，支持「代码 名称」「代码,名称」「名称 代码」或仅 6 位代码（可带 sh/sz/bj 前缀）。导入后自动去重，并用腾讯接口补全股票名。</p>
+    <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;font-size:13px;color:#334">
+      <label><input type="radio" name="bkTarget" value="watch" checked> 导入到自选股</label>
+      <label><input type="radio" name="bkTarget" value="hold"> 导入到持仓</label>
+      <label><input type="radio" name="bkTarget" value="both"> 两者都导入</label>
+    </div>
+    <textarea id="bkText" rows="9" style="width:100%;box-sizing:border-box;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;padding:10px;border:1px solid #cbd5e1;border-radius:8px;resize:vertical" placeholder="600519 贵州茅台&#10;000858&#10;sh300308 中际旭创&#10;宁德时代/300750"></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+      <button class="btn sm" onclick="runBulkImport()">导入</button>
+      <button class="btn sm ghost" onclick="closeBulk()">取消</button>
+      <span id="bkMsg" style="font-size:12px;color:#667"></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
